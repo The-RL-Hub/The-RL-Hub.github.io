@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The RL Hub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="description" content="The RL Hub - مرجع یادگیری تقویتی">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <div class="nav-title">
+                <img src="Pictures/1.png" alt="The RL Hub Logo" class="nav-logo">
+                The RL Hub
+            </div>
+            <div class="nav-left">
+                <a href="Pages/1-Introduction/intro.html"><i class="fas fa-book-open"></i> شروع</a>
+                <a href="#"><i class="fas fa-info-circle"></i> درباره ما</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <h1>فهرست مطالب</h1>
+        <p class="guide">مسیر یادگیری خود را انتخاب کنید</p>
+
+        <div class="section-container">
+            <h2 class="section-title">مقدمات و مساله Bandit</h2>
+            <section class="cards-container">
+                <!-- Introduction to RL -->
+                <div class="card">
+                    <div class="card-header">مقدمه</div>
+                    <div class="card-image">
+                        <img src="Pictures/1.png" alt="مقدمه">
+                    </div>
+                    <div class="card-content">
+                        <ul>
+                            <li>اصلا RL چیه؟</li>
+                            <li>اجزای اصلی چیا هستن؟</li>
+                            <li>چند مثال برای درک بهتر.</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="Pages/1-Introduction/intro.html"><i class="fas fa-globe"></i> صفحه درس</a>
+                    </div>
+                </div>
+                
+                <!-- Simple Multi-armed Bandit -->
+                <div class="card">
+                    <div class="card-header">مساله Multi-armed bandit ساده</div>
+                    <div class="card-image">
+                        <img src="Pictures/2.png" alt="Multi-armed Bandits">
+                    </div>
+                    <div class="card-content">
+                        <ul>
+                            <li>مساله k-armed Bandit رو توضیح بدیم؟</li>
+                            <li>پیاده سازی Incremental.</li>
+                            <li>اکسپلور یا اکسپلویت؟ کدومش؟</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="Pages/2-smab/smab.html"><i class="fas fa-globe"></i>صفحه درس</a>
+                    </div>
+                </div>
+                
+                
+                <!-- Contextual Multi-armed Bandit -->
+                <div class="card">
+                    <div class="card-header">مساله Contextual Multi-armed Bandit</div>
+                    <div class="card-image">
+                        <img src="Pictures/3.png" alt="Contextual Multi-armed Bandits">
+                    </div>
+                    <div class="card-content">
+                        <ul>
+                            <li>حل مساله Bandit با استفاده از کانتکست</li>
+                            <li>LinUCB و مقایسه با UCB</li>
+                            <li>کاربردهای دنیای واقعی</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="Pages/3-cmab/cmab.html"><i class="fas fa-globe"></i>صفحه درس</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="section-container">
+            <h2 class="section-title">مقدمات ریاضی</h2>
+            <section class="cards-container">
+                <!-- Probability Essentials -->
+                <div class="card">
+                    <div class="card-header">مفاهیم اساسی احتمال برای RL</div>
+                    <div class="card-image">
+                        <img src="Pictures/4.png" alt="Probability Essentials">
+                    </div>
+                    <div class="card-content">
+                        <ul>
+                            <li>متغیرهای تصادفی و توزیع‌های احتمال</li>
+                            <li>امید ریاضی و واریانس</li>
+                            <li>فرآیندهای تصمیم‌گیری مارکوف</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="Pages/4-Probability/probability.html"><i class="fas fa-globe"></i>صفحه درس</a>
+                    </div>
+                </div>
+                
+                <!-- Dynamic Programming -->
+                <div class="card">
+                    <div class="card-header">مقدمات MDP</div>
+                    <div class="card-image">
+                        <img src="Pictures/5.png" alt="MDP">
+                    </div>
+                    <div class="card-content">
+                        <ul>
+                            <li>مفاهیم اساسی MDP</li>
+                            <li>معادلات Bellman</li>
+                            <li>Dynamic programming</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#"><i class="fas fa-hammer"></i> در حال توسعه</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div class="scroll-top" id="scrollTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <footer class="social-footer">
+        <a href="https://t.me/RL_Hub" target="_blank" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+        <a href="https://github.com/The-RL-Hub" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+        <a href="mailto:arshiyagharoony@gmail.com" aria-label="Email"><i class="fas fa-envelope"></i></a>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
