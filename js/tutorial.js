@@ -1,3 +1,16 @@
+// Debounce function to limit how often a function can be called
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const sections = document.querySelectorAll(".content h2");
     const navLinks = document.querySelectorAll(".sidebar ul li a");
@@ -5,45 +18,68 @@ document.addEventListener("DOMContentLoaded", () => {
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.sidebar');
     const contentSection = document.querySelector('.content');
+    
+    // Add sidebar overlay for mobile
+    const sidebarOverlay = document.createElement('div');
+    sidebarOverlay.className = 'sidebar-overlay';
+    document.body.appendChild(sidebarOverlay);
 
-    // Sidebar toggle for mobile/portrait mode
+    // Improved sidebar toggle for mobile/portrait mode
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             sidebar.classList.toggle('visible');
+            sidebarOverlay.classList.toggle('visible');
+            document.body.style.overflow = sidebar.classList.contains('visible') ? 'hidden' : '';
         });
         
-        // Close sidebar when clicking outside of it
-        document.addEventListener('click', (e) => {
-            if (sidebar.classList.contains('visible') && 
-                !sidebar.contains(e.target) && 
-                e.target !== sidebarToggle &&
-                !sidebarToggle.contains(e.target)) {
+        // Close sidebar when clicking on the overlay
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('visible');
+            sidebarOverlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        });
+        
+        // Close sidebar when clicking a link in the sidebar (on mobile)
+        sidebar.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' && window.innerWidth <= 768) {
                 sidebar.classList.remove('visible');
+                sidebarOverlay.classList.remove('visible');
+                document.body.style.overflow = '';
             }
         });
     }
 
     // Function to add 'active' class to the current section's link
     function activateLink() {
+        if (!sections.length || !navLinks.length) return;
+        
         let index = sections.length;
-
-        while (--index && window.scrollY + 50 < sections[index].offsetTop) {}
-
+        while (--index >= 0 && window.scrollY + 100 < sections[index].offsetTop) {}
+        
+        // Handle edge case where index becomes -1
+        index = Math.max(0, index);
+        
         navLinks.forEach((link) => link.classList.remove("active"));
-        navLinks[index].classList.add("active");
+        if (navLinks[index]) {
+            navLinks[index].classList.add("active");
+        }
     }
 
-    // Scroll event listener for activating the correct link
-    window.addEventListener("scroll", activateLink);
+    // Debounced scroll event listener for activating the correct link
+    const debouncedActivateLink = debounce(activateLink, 100);
+    window.addEventListener("scroll", debouncedActivateLink);
     
-    // Show/hide scroll button based on scroll position
-    window.addEventListener('scroll', () => {
+    // Debounced scroll handling for scroll-to-top button
+    const handleScroll = debounce(() => {
         if (window.scrollY > 300) {
             scrollTopButton.classList.add('visible');
         } else {
             scrollTopButton.classList.remove('visible');
         }
-    });
+    }, 100);
+    
+    // Show/hide scroll button based on scroll position
+    window.addEventListener('scroll', handleScroll);
     
     // Scroll to top when button is clicked
     scrollTopButton.addEventListener('click', () => {
@@ -89,6 +125,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log('Content changed, typesetting math');
                 // Small delay to ensure content is fully loaded
                 setTimeout(initMathJax, 100);
+                
+                // After content loads, check if tables need responsive treatment
+                makeTablesResponsive();
             }
         });
         
@@ -124,32 +163,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     
-    // Make sidebar links active based on scroll position
-    if (contentSection) {
-        // We'll add this after the markdown content is loaded and headings are added
-        window.addEventListener('scroll', function() {
-            // This will be populated after content loads
-            const headings = contentSection.querySelectorAll('h1, h2, h3, h4');
-            if (headings.length > 0) {
-                let currentActive = null;
-                
-                headings.forEach(heading => {
-                    const rect = heading.getBoundingClientRect();
-                    if (rect.top <= 100) { // Adjust as needed
-                        currentActive = heading.id;
-                    }
-                });
-                
-                if (currentActive) {
-                    document.querySelectorAll('.sidebar a').forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('href') === '#' + currentActive) {
-                            link.classList.add('active');
-                        }
-                    });
-                }
+    // Make tables responsive
+    function makeTablesResponsive() {
+        const tables = contentSection.querySelectorAll('table');
+        tables.forEach(table => {
+            // Only wrap if not already wrapped
+            if (!table.parentElement.classList.contains('table-responsive')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'table-responsive';
+                table.parentNode.insertBefore(wrapper, table);
+                wrapper.appendChild(table);
             }
         });
+    }
+    
+    // Check for orientation changes to handle sidebar visibility
+    window.addEventListener('orientationchange', () => {
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('visible');
+            sidebarOverlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Add touch event listeners for better mobile experience
+    if ('ontouchstart' in window) {
+        document.documentElement.classList.add('touch-device');
     }
 });
 
