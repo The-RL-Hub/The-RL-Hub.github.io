@@ -123,13 +123,34 @@ document.addEventListener("DOMContentLoaded", () => {
             if (typesetPerformed) return;
             for (const mutation of mutations) {
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    requestAnimationFrame(() => {
-                        initMathJax();
-                        makeTablesResponsive();
-                        typesetPerformed = true;
-                        observer.disconnect();
-                        console.log('MathJax typeset → observer disconnected (optimised)');
-                    });
+                    // Use a robust typesetting routine that waits until
+                    // MathJax is actually available. Occasionally the
+                    // observer fires *before* MathJax has finished loading
+                    // (especially on slow networks), which caused formulas
+                    // to remain uncompiled. We now retry until MathJax is
+                    // present and its promise resolved.
+
+                    const performTypeset = () => {
+                        if (typesetPerformed) return;
+
+                        if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+                            MathJax.typesetPromise()
+                                .then(() => {
+                                    makeTablesResponsive();
+                                    typesetPerformed = true;
+                                    observer.disconnect();
+                                    console.log('MathJax typeset → observer disconnected (final)');
+                                })
+                                .catch((err) => {
+                                    console.error('MathJax typeset error:', err);
+                                });
+                        } else {
+                            // MathJax not yet ready; try again shortly
+                            setTimeout(performTypeset, 100);
+                        }
+                    };
+
+                    performTypeset();
                     break;
                 }
             }
