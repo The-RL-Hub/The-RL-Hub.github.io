@@ -363,3 +363,40 @@ main h1::after {
         justify-content: center;
     }
 }
+
+@media (orientation: portrait), (max-aspect-ratio: 1/2) {
+    /* Improve usability on very tall & narrow screens (mobile phones or vertical browser splits) */
+    .cards-container {
+        grid-template-columns: 1fr;
+    }
+
+    .navbar {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .nav-left {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 18px;
+    }
+
+    .nav-left a {
+        font-size: 13px;
+    }
+
+    .nav-left {
+        gap: 10px;
+    }
+
+    .social-footer a {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        font-size: 14px;
+    }
+}
