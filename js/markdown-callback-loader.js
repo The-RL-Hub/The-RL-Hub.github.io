@@ -316,10 +316,9 @@ const MarkdownCallbackLoader = (function() {
             });
         }
         
-        // Trigger MathJax to process new content
-        if (window.MathJax) {
-            window.MathJax.typeset();
-        }
+        // MathJax typesetting is now handled in tutorial.js after all content
+        // (including code highlighting) is in the DOM, preventing duplicate
+        // passes that slowed down page load.
         
         // Add IDs to headings for navigation (if they don't already have one)
         contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
