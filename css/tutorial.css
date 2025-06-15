@@ -514,6 +514,21 @@ html {
         width: auto;
         margin: 10px;
     }
+    header nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+    }
+    header nav a {
+        margin: 5px 6px;
+        font-size: 13px;
+    }
+    .social-footer a {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        font-size: 14px;
+    }
 }
 
 .sidebar-toggle {
