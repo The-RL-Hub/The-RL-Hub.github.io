@@ -529,6 +529,17 @@ html {
         line-height: 30px;
         font-size: 14px;
     }
+    .header-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+    .social-footer {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
 }
 
 .sidebar-toggle {
