@@ -316,9 +316,24 @@ const MarkdownCallbackLoader = (function() {
             });
         }
         
-        // MathJax typesetting is now handled in tutorial.js after all content
-        // (including code highlighting) is in the DOM, preventing duplicate
-        // passes that slowed down page load.
+        // Ensure math is always typeset once content is ready. We rely on
+        // MathJax.typesetPromise (non-blocking, returns a promise). If MathJax
+        // hasn't finished loading yet, wait for the custom 'mathjax-ready'
+        // event emitted in mathjax-config.js.
+
+        const typeset = () => {
+            if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+                MathJax.typesetPromise([contentElement]).catch(err => console.error('MathJax typeset error:', err));
+            }
+        };
+
+        if (window.MathJax && window.MathJax.startup && window.MathJax.startup.typesetPromise) {
+            // MathJax already initialised
+            typeset();
+        } else {
+            // Wait until MathJax signals it is ready
+            document.addEventListener('mathjax-ready', typeset, { once: true });
+        }
         
         // Add IDs to headings for navigation (if they don't already have one)
         contentElement.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
