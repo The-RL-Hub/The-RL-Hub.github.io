@@ -33,6 +33,9 @@ window.MathJax = {
         ready: function() {
             console.log("MathJax is loaded and configured");
             MathJax.startup.defaultReady();
+            // Dispatch a global event so other scripts can react exactly
+            // when MathJax is fully ready (used as a fallback safety net).
+            document.dispatchEvent(new Event('mathjax-ready'));
         }
     }
 }; 
