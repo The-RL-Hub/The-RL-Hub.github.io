@@ -16,13 +16,22 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Scroll to top functionality
     const scrollTopButton = document.getElementById('scrollTop');
+    const header = document.querySelector('header');
     
     // Debounced scroll handler
     const handleScroll = debounce(() => {
+        // Toggle visibility of back-to-top button
         if (window.scrollY > 300) {
             scrollTopButton.classList.add('visible');
         } else {
             scrollTopButton.classList.remove('visible');
+        }
+
+        // Toggle compact header styling
+        if (window.scrollY > 40) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
         }
     }, 100);
     
