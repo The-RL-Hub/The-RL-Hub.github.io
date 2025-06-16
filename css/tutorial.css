@@ -62,8 +62,7 @@ header {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    margin: 0;
     padding: 0 15px;
 }
 
@@ -144,8 +143,11 @@ main {
     box-shadow: var(--box-shadow);
     padding: 12px;
     margin-left: 12px;
-    height: fit-content;
+    height: calc(100vh - 100px);
     font-size: 13px;
+    overflow-y: auto;
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--primary-light) var(--bg-color);
 }
 
 .sidebar ul {
@@ -196,6 +198,9 @@ main {
     border-radius: 6px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     font-size: 14px;
+    max-width: 760px;
+    width: 100%;
+    margin: 0 auto;
 }
 
 .content h1 {
@@ -496,6 +501,18 @@ html {
 }
 
 @media (orientation: portrait), (max-aspect-ratio: 1/2) {
+    main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 12px;
+    }
+    .content,
+    .section-container {
+        max-width: 760px;
+        width: 100%;
+        margin: 20px auto !important;
+    }
     .sidebar {
         position: fixed;
         right: -280px;
@@ -505,10 +522,11 @@ html {
         z-index: 1000;
         transition: right var(--transition-speed) ease;
         overflow-y: auto;
+        padding-top: var(--header-height);
+        background-color: #fff;
     }
     main {
         display: block;
-        padding: 0;
     }
     .content {
         width: auto;
@@ -669,6 +687,8 @@ html {
 .MathJax_Display {
     text-align: center !important;
     margin: 0.5em auto !important;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .content .math-block p {
@@ -938,4 +958,45 @@ html {
 .touch-device .button,
 .touch-device input[type="submit"] {
     min-height: 44px;
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: var(--bg-color);
+    border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Hide sidebar completely on mobile devices */
+@media (max-width: 768px), (orientation: portrait) {
+    .sidebar,
+    .sidebar-toggle,
+    .sidebar-overlay {
+        display: none !important;
+    }
+}
+
+/* FINAL override to ensure centered content on tall portrait screens */
+@media (orientation: portrait), (max-aspect-ratio: 1/2) {
+    main {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 12px;
+    }
+    .content,
+    .section-container {
+        max-width: 760px;
+        width: 100%;
+        margin: 20px auto !important;
+    }
 } 
