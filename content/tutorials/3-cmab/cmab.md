@@ -1,5 +1,5 @@
 # Contextual Bandits
-
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/The-RL-Hub/RLH-Material/blob/main/Chapter02%20and%2003/MAB.ipynb)
 ## مقدمه
 
 Contextual bandits یه دسته از مسائل تصمیم‌گیری sequentialهستن که تو هر مرحله، یه ایجنت یه سری اطلاعات جانبی (که بهش *context* می‌گن) رو می‌بینه و باید یه اکشن (که معمولا *arm* نامیده می‌شه) رو انتخاب کنه تا ریوارد بگیره. برعکس multi-armed bandit که context نداره، contextual bandits این امکان رو به ایجنت می‌ده که تصمیماتش رو بر اساس contextی که دیده تنظیم کنه. این ویژگی، contextual bandits رو توی کاربردهایی مثل پیشنهادات شخصی‌سازی‌شده و تبلیغات آنلاین خیلی قوی می‌کنه، چون تصمیم‌گیری‌ها می‌تونن بر اساس اطلاعات کاربر یا محیط انجام بشن.
