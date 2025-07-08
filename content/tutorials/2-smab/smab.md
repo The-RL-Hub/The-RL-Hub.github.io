@@ -1,5 +1,5 @@
 # Standard Multi-Armed Bandits
-
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/The-RL-Hub/RLH-Material/blob/main/Chapter02%20and%2003/MAB.ipynb)
 
 ## مقدمه‌ای بر Multi-Armed Bandits
 
