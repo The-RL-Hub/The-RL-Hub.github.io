@@ -8,7 +8,7 @@
 
 تعریفی بخوام بگم، یه value function رو می‌شه با دوتا دقت زیر تعریف کرد:
 
-* **States:** *state-value* $V^\pi(s)$ توضیح می‌ده اگه با policy $\pi$ تو state $s$ باشیم در بلندمدت چقدر می‌صرفه.
+* **States:** *state-value* $V^\pi(s)$ توضیح می‌ده اگه با policy $ \pi $ تو state $s$ باشیم در بلندمدت چقدر می‌صرفه.
 * **State–اکشن pairs:** *اکشن-value* $Q^\pi(s,a)$ همین حرفو دقیق‌تر می‌کنه چون اکشن بعدی رو هم تو حساب میاره.
 
 چیزی که Value-based رو خاص می‌کنه **bootstrapping**ـه: برآورد یه state تا حدی به حدس خودش تو قدم‌های بعدی تکیه می‌کنه. bootstrapping وقتی (i) *dynamic programming* داریم و مدل Markov decision process (MDP) رو کامل می‌شناسیم، یا (ii) *temporal-difference (TD) learning* داریم و فقط دادهٔ نمونه‌گیری‌شده از محیط دم دستمونه، خیلی خوب جواب می‌ده.
