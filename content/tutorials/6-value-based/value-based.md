@@ -1,6 +1,6 @@
 # روش‌های Value-Based
 
-
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/The-RL-Hub/RLH-Material/blob/main/Chapter06/VB_methods_DP.ipynb)
 ## مقدمه
 
 روش‌های Value-based از قدیمی‌ترین و شاید کامل‌ترین شاخه‌های بررسی‌شده توی Reinforcement Learning (RL) هستن. این روش‌ها مستقیم از کارای ریچارد بلمن تو دههٔ ۱۹۵۰ روی **dynamic programming (DP)** میان؛ جایی که اون اصل بهینگی و معادلات Bellman رو معرفی کرد که هنوزم ستون فقرات RL مدرنه.  
