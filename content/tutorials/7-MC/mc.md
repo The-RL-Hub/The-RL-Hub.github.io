@@ -299,7 +299,7 @@ $$
 
 
 
-## First-Visit در برابر Every-Visit Monte Carlo
+## First-Visit Monte Carlo در برابر Every-Visit Monte Carlo
 
 وقتی داریم با Monte Carlo، value functionها رو تخمین می‌زنیم، یه تصمیم مهم داریم: اگه یه state توی یه episode چند بار visit شد، با اون چندبار دیدن چی‌کار کنیم؟ همین باعث می‌شه دو تا variant داشته باشیم: **First-Visit Monte Carlo** و **Every-Visit Monte Carlo**. هر دوتاشون معتبرن و وقتی تعداد sampleها خیلی زیاد بشه، به مقدار واقعی همگرا می‌شن؛ ولی فرقشون اینه که دقیقاً چطور از داده‌های هر episode استفاده می‌کنن، و همین فرق می‌تونه روی variance و biasِ تخمین اثر بذاره.
 
