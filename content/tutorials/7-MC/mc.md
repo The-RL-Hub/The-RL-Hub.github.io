@@ -317,6 +317,63 @@ $$
 
 برای این‌که فرقش واضح‌تر بشه، این مثال رو در نظر بگیر: یه episode stateِ $s$ رو سه بار visit می‌کنه و در نهایت return (از اولین بارِ $s$) می‌شه 5، بعد return از occurrence دومِ $s$ (که دیرتره) می‌شه 3، و از سومی می‌شه 2 (چون بعد از visitهای دیرتر، بخش کمتری از episode مونده). first-visit MC فقط همون 5 رو از اون episode برای $s$ برمی‌داره. every-visit MC هر سه مقدار 5 و 3 و 2 رو توی average استفاده می‌کنه. sampleِ روش first-visit (یعنی 5) یه draw بدونِ bias از distribution واقعیِ returnها از $s$ حساب می‌شه. sampleهای روش every-visit (یعنی 5، 3، 2) به‌خاطر همون correlation و این‌که returnِ دیرتر ذاتاً کوتاه‌تره، می‌تونن یه bias کوچیک ایجاد کنن—ولی وقتی episode زیاد بشه، این اثرها معمولاً با هم balance می‌شن. از نظر تجربی هم استفاده از همه‌ی visitها خیلی وقت‌ها یادگیری رو سریع‌تر می‌کنه چون info این‌که «از $s$ توی زمان‌های دیرتر، return کمتر شده» رو دور نمی‌ریزیم (مثلاً چون به termination نزدیک بودیم).
 
-**جمع‌بندی:** First-Visit MC فقط دفعه‌ی اولی که یه state توی هر episode دیده می‌شه update می‌کنه، پس data pointها کمتر correlated می‌شن و estimator بدونِ bias می‌مونه. Every-Visit MC روی همه‌ی encounterها update می‌کنه، یعنی sample efficiency بهتره و معمولاً اوایل variance کمتر می‌ده، ولی به خاطر correlation یه bias کوچیک هم می‌تونه داشته باشه—که با زیاد شدن episodeها عملاً محو می‌شه. توی خیلی از مسائل واقعی، every-visit MC به خاطر یادگیری سریع‌تر و استفاده‌ی بهتر از data ترجیح داده می‌شه. اگه یه نفر خیلی حساس باشه که estimator از همون اول حتماً unbiased باشه، first-visit MC انتخاب امن‌تریه. نکته‌ی اصلی اینه که در limitِ بی‌نهایت episode، هر دو روش برای همه‌ی stateها به همون valueها می‌رسن.
 
-> نکته درباره‌ی **formally**: هر جا منظور «تعریفاً / از نظر تعریف» باشه، بهتره به‌جای «به‌طور رسمی» از همین عبارت‌های تعریفی استفاده کنیم.
+
+
+
+
+
+
+
+
+
+
+### Incremental Monte Carlo Updates
+
+تا اینجا Monte Carlo estimation رو جوری گفتیم که انگار یه batch از returnها رو جمع می‌کنی و آخرش میانگین می‌گیری. مثلاً بعد از این‌که stateِ $s$ رو $N(s)$ بار visit کردی، می‌گفتیم:
+$$
+V^\pi(s)=\frac{1}{N(s)}\sum_{i=1}^{N(s)}G_i.
+$$
+ولی توی عمل معمولاً خیلی راحت‌تره (و از نظر حافظه هم خیلی بهینه‌تره) که value estimateها رو incremental آپدیت کنیم؛ یعنی هر وقت یه return جدید دیدیم، همون لحظه آپدیتش کنیم، نه این‌که همه‌ی returnها رو ذخیره کنیم.
+
+Monte Carlo methodها رو می‌شه آنلاین (online) و با یه فرمول running average خیلی تمیز پیاده‌سازی کرد.
+
+ایده‌ی کلی اینه: وقتی یه sample جدید $G$ به دستت می‌رسه، میانگین جدید رو می‌تونی این‌طوری آپدیت کنی:
+$$
+\text{new\_avg}=\text{old\_avg}+\frac{1}{n}\bigl(\text{sample}-\text{old\_avg}\bigr),
+$$
+که اینجا $n$ تعداد کل جدیدِ sampleهاست. یعنی بدون این‌که دوباره بری همه‌ی sampleهای قبلی رو جمع بزنی، همون میانگین رو تو یه قدم آپدیت می‌کنی. دقیقاً همین رو می‌تونیم برای Monte Carlo value estimation استفاده کنیم.
+
+فرض کن تا قبل از الان، $N(s)-1$ بار $s$ رو visit کردیم و estimateمون $V(s)$ بوده (که همون averageِ returnهای قبلیه). حالا یه visit دیگه از $s$ داریم و یه return جدید $G$ می‌بینیم؛ این می‌شه sampleِ شماره‌ی $N(s)$. value جدید یعنی $V_{\text{new}}(s)$ باید averageِ همه‌ی $N(s)$ تا return باشه. از نظر ریاضی:
+$$
+V_{\text{new}}(s)=\frac{(N(s)-1)V_{\text{old}}(s)+G}{N(s)}.
+$$
+حالا اگه این رو یه کم بازنویسی کنیم، می‌رسیم به:
+$$
+V_{\text{new}}(s)=V_{\text{old}}(s)+\frac{1}{N(s)}\bigl[\,G-V_{\text{old}}(s)\,\bigr].
+$$
+این همون incremental update برای Monte Carlo policy evaluation ـه. معنی‌اش اینه که estimate قبلی رو با خطاش نسبت به target یعنی $G-V_{\text{old}}(s)$ اصلاح می‌کنیم، ولی با ضریب $1/N(s)$. اوایل که $N(s)$ کوچیکه، آپدیت‌ها بزرگ‌ترن و سریع‌تر یاد می‌گیریم؛ هر چی $N(s)$ بیشتر می‌شه، step size یعنی $1/N(s)$ کوچیک‌تر می‌شه و value estimate آروم‌تر تغییر می‌کنه (چون خب داده‌ی بیشتری دیده و اعتمادمون بهش بیشتره). قشنگی‌اش هم اینه که دقیقاً معادل batch average هست، ولی برای implementation خیلی راحت‌تره: نه لازم داری returnهای قدیمی رو ذخیره کنی، نه لازم داری صبر کنی یه batch بزرگ از episodeها جمع بشه. هر وقت یه return جدید برای $s$ داشتی می‌تونی $V(s)$ رو همون لحظه آپدیت کنی (برای Monte Carlo یعنی معمولاً آخر هر episode، یا برای first visit هر state داخل یه episode).
+
+**چرا incremental update خوبه؟**
+- **Memory Efficiency:** دیگه لازم نیست برای هر state یه لیست بلندبالا از returnها نگه داری. فقط $V(s)$ و count یعنی $N(s)$ رو نگه می‌داری (حتی $N(s)$ رو هم می‌شه با روش‌های دیگه مدیریت کرد). این وقتی state space بزرگه خیلی مهمه.
+- **Online (Real-Time) Learning:** توی خیلی از taskها یا simulationها دوست داری valueها همون‌طور که جلو می‌ری آپدیت بشن، نه این‌که بعداً بشینی batch درست کنی. Incremental Monte Carlo اجازه می‌ده بعد از هر episode (یا بعد از هر visit مرتبطِ state) آپدیت انجام بشه. این مخصوصاً وقتی خوبه که یه ایجنت رو deploy کردی و می‌خوای حین کار هم یاد بگیره.
+- **Smooth Convergence:** این running average خودش step size رو به مرور کم می‌کنه ($1/N(s)$) و معمولاً باعث convergence تمیز و پایدار می‌شه. اول کار که اطلاعات کمه، returnهای جدید estimate رو حسابی جابه‌جا می‌کنن؛ بعدتر که sample زیاد می‌شه، هر return جدید فقط یه تکون کوچیک می‌ده. عملاً یه جور learning rate schedule طبیعی می‌شه.
+
+بد نیست اشاره کنیم که این فرمول incremental:
+$$
+V(s)\leftarrow V(s)+\frac{1}{N(s)}\bigl(G-V(s)\bigr)
+$$
+در اصل یه حالت خاص از stochastic gradient descent update هم هست (و حتی خیلی شبیه TD(0) update به نظر میاد، اگه $G$ رو به‌عنوان “target” در نظر بگیری). این ایده قابل تعمیمه: بعضی وقت‌ها به‌جای $1/N(s)$ از یه step-size ثابت $\alpha$ استفاده می‌کنن تا توی environmentهای non-stationary هم هنوز سیستم انعطاف داشته باشه یا به تجربه‌های جدیدتر وزن بیشتری بده. برای Monte Carlo evaluation خالص، وقتی policy ثابته و environment هم stationary ـه، $\alpha=1/N(s)$ همون average دقیق و طبیعی رو می‌ده. ولی اگه process non-stationary باشه (مثلاً policy هی عوض بشه یا dynamics محیط تغییر کنه)، معمولاً از یه exponential moving average با $\alpha$ ثابت (مثلاً $\alpha=0.01$) استفاده می‌کنن تا تغییرات رو بهتر track کنه.
+
+در کل، Incremental Monte Carlo updating یعنی منتظر نمی‌مونی یه عالمه return جمع شه؛ هر بار که یه sample return جدید می‌بینی، همون لحظه value رو آپدیت می‌کنی. قانون آپدیت هم اینه:
+$$
+V^\pi(s)\leftarrow V^\pi(s)+\frac{1}{N(s)}\bigl(G-V^\pi(s)\bigr)
+$$
+و این رو می‌تونی هم برای first-visit MC (یعنی بعد از first visit هر episode به $s$ آپدیت کنی) استفاده کنی، هم برای every-visit MC (یعنی روی هر visit آپدیت انجام بدی؛ اون‌وقت $N(s)$ همه‌ی occurrenceها رو می‌شمره). نتیجه‌ی نهایی هم همونه: همون average از همه‌ی returnها، فقط با یه implementation خیلی راحت‌تر و آنلاین‌تر.
+
+هر return جدید، value رو به سمت sample هل می‌ده، با یه step size که کم‌کم کوچیک‌تر می‌شه. با این ابزار، عملاً Monte Carlo toolkit کامل‌تر می‌شه: episode تولید می‌کنی، first-visit یا every-visit averaging رو انتخاب می‌کنی، و value estimateها رو incremental آپدیت می‌کنی. با این تکنیک‌ها، Monte Carlo methodها می‌تونن value functionها و policyهای optimal رو از experience خام یاد بگیرن، بدون این‌که هیچ model از environment داشته باشن—به شرط این‌که exploration کافی باشه و تعداد episode کافی ببینی.
+
+
+
+
+
