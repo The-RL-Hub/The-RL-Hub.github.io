@@ -246,3 +246,49 @@ $$
 که توش$\alpha=\frac{1}{N(s)}$رو به عنوان stepsize (یعنی معکوس تعداد visitها) در نظر می‌گیریم. این دقیقاً معادل اینه که مجموع returnها رو جمع کنیم و بر تعدادشون تقسیم کنیم، با این فرق که اجازه می‌ده آنلاین و incremental جلو بریم، بدون این‌که لازم باشه همه‌ی returnهای قبلی رو نگه داریم. ما این فرمولِ “incremental Monte Carlo” رو تو بخش 3.6 بیشتر باز می‌کنیم، ولی شهودش اینه که یه running average انجام می‌ده: بعد از$n$بار visit،$V(s)$می‌شه میانگین همون$n$تا return.
 
 Monte Carlo prediction یه روش model-freeـه: ایجنت لازم نیست transition probabilityها یا expected rewardها رو بدونه، فقط کافیه policy رو دنبال کنه و ببینه چی می‌شه. همین باعث می‌شه خیلی general باشه—حتی می‌شه صرفاً با مشاهده‌ی experienceهای یه ایجنت ازش استفاده کرد (حتی off-policy هم شدنیه، که اون موقع به importance sampling correction نیاز داریم، هرچند این فعلاً خارج از scope ماست). نقطه‌ضعفش اینه که ممکنه برای دقیق شدن estimateها به episodeهای زیادی نیاز داشته باشه، مخصوصاً برای stateهایی که variance returnشون بالاست. علاوه بر این، چون updateها فقط وقتی episode کامل تموم شد اتفاق می‌افتن، اگر episodeها طولانی باشن learning می‌تونه کند پیش بره. با این حال، Monte Carlo methodها از نظر مفهومی خیلی ساده‌ن و یه راه نسبتاً unbiased می‌دن برای یاد گرفتن valueها مستقیم از experience. تو موقعیت‌هایی مثل بازی‌ها یا simulationها که می‌تونیم episodeهای زیادی تولید کنیم، Monte Carlo eva
+
+
+
+
+
+
+
+
+
+## Monte Carlo Control
+
+هدف آخر کار توی reinforcement learning این نیست که فقط یه policy مشخص رو evaluate کنیم و بگیم «خب این چقدر خوبه»، هدف اینه که **policy رو بهتر و بهتر کنیم** تا returnها (یعنی جمع ریواردها) بیشتر بشه. روش‌های **Monte Carlo control** دقیقاً همین کار رو می‌کنن: با تخمین‌های Monte Carlo برای **action-value**ها، policy رو مرحله‌به‌مرحله optimize می‌کنن. ایده‌ی کلی خیلی ساده‌ست: هی بین دو تا کار رفت‌وبرگشت می‌کنیم—اول **evaluation** (با sample گرفتن و تخمین زدن اینکه policy فعلی چقدر می‌ارزه) و بعد **improvement** (greedy‌تر کردن policy نسبت به همون تخمین‌ها). این دقیقاً همون حسِ **policy iteration** رو می‌ده.
+
+اینجا تمرکز روی **on-policy Monte Carlo control**ـه؛ یعنی همون policy که باهاش episode تولید می‌کنی، همون policy هم هست که داری update می‌کنی تا کم‌کم به policy بهینه برسی. یه نسخه‌ی پایه از Monte Carlo control معمولاً این شکلی جلو می‌ره:
+
+1) **Initialize** یه policy دلخواه $\\pi$ (بهتره $\\pi$ **soft** باشه، یعنی برای همه‌ی اکشن‌ها داشته باشیم $\\pi(a|s)>0$، تا exploration تضمین بشه). معمولاً از یه policy تصادفی شروع می‌کنیم که همه اکشن‌ها رو یه‌جوری امتحان می‌کنه.
+
+2) **Generate Episodes:** هی episode تولید کن و policy فعلی $\\pi$ رو دنبال کن. برای هر episode، دنباله‌ی stateها، اکشن‌ها و ریواردها رو نگه دار. نکته‌ی مهم اینه که با گذشت زمان، episode کافی بسازی تا زوج‌های $(s,a)$ به‌اندازه‌ی کافی دیده بشن. (توی Monte Carlo معمولاً یه فرض رایج داریم به اسم **exploring starts**: یعنی هر episode از یه state تصادفی با یه اکشن تصادفی شروع می‌شه تا هر $(s,a)$ بالاخره شانس دیده‌شدن داشته باشه. یا می‌تونی به‌جاش از یه policy مثل $\\epsilon$-greedy استفاده کنی که باز هم exploration رو تضمین می‌کنه — پایین‌تر بیشتر می‌گیم.)
+
+3) **Estimate Action Values:** با همون داده‌ی episodeها، returnها رو برای هر زوج state-اکشنی که دیده شده حساب کن. یعنی هر وقت یه $(s,a)$ توی زمان $t$ توی episode ظاهر شد، return بعدش رو به‌صورت $G_t$ حساب کن. بعد تخمین **action-value** یعنی $Q^\\pi(s,a)$ رو با میانگین‌گیری از همین returnها update کن. اگر $N(s,a)$ تعداد دفعاتی باشه که $(s,a)$ دیده شده و $G_1,G_2,\\dots,G_{N(s,a)}$ هم returnها باشن، داریم:
+
+$$
+Q^\\pi(s,a)=\\frac{1}{N(s,a)}\\sum_{i=1}^{N(s,a)} G_i
+$$
+
+یعنی همون sample meanِ returnها برای اون state-action. (این کار رو می‌شه incremental هم انجام داد که لازم نباشه همه‌ی returnها رو ذخیره کنی.) عملاً این همون Monte Carlo **policy evaluation**ـه، فقط به‌جای state-value، داریم **action-value** رو estimate می‌کنیم: یعنی می‌گه «اگر توی state $s$ اکشن $a$ رو بزنی و بعدش ادامه بدی با policy $\\pi$، ارزشِ تخمینیِ این کار چقدره؟»
+
+4) **Policy Improvement:** حالا policy رو بهتر کن، یعنی نسبت به $Q$ greedy‌ترش کن. برای هر state $s$، اکشنی رو انتخاب کن که طبق $Q^\\pi(s,a)$ بهترین به نظر می‌رسه:
+
+$$
+\\pi_{\\text{new}}(s)=\\arg\\max_a Q^\\pi(s,a)
+$$
+
+یعنی اکشنی که بیشترین return تخمینی رو می‌ده. اگر tie شد، هر جور دوست داری می‌تونی tie رو بشکنی. این مرحله یه policy greedy $\\pi_{\\text{new}}$ می‌ده که (طبق policy improvement theorem) حداقل از policy قبلی بدتر نیست، و معمولاً بهتره—حداقل روی stateهایی که واقعاً دیده شدن و تخمین داریم.
+
+5) **Repeat:** $\\pi$ رو با $\\pi_{\\text{new}}$ جایگزین کن و این روند رو ادامه بده: با policy جدید episodeهای بیشتری بساز، دوباره $Q$ رو evaluate کن، دوباره policy رو improve کن. اگر تخمین‌های $Q$ کم‌کم دقیق‌تر بشن، این iterationها باعث می‌شن policy به $\\pi^*$ نزدیک بشه و $Q^\\pi(s,a)$ هم به **optimal action-value function** یعنی $Q^*(s,a)$ نزدیک بشه.
+
+این در واقع یه نسخه‌ی on-policy از **generalized policy iteration (GPI)**ـه. از نظر تئوری می‌گن اگر هر زوج state-action بی‌نهایت بار explore بشه و ما هر بار به‌صورت greedy policy رو improve کنیم، با احتمال 1 به یه policy بهینه همگرا می‌شیم. ولی یه نکته‌ی خیلی مهم این وسط explorationـه: اگر هر بار policy رو کاملاً deterministically و صددرصد greedy کنی، ممکنه خیلی زود گیر کنی. مثلاً فرض کن policy اولیه $\\pi$ شانسی هیچ‌وقت یه اکشن $a$ رو توی یه state $s$ امتحان نکنه؛ اون وقت $Q(s,a)$ عملاً unknown می‌مونه. اگر زود policy رو greedy کنی، policy می‌چسبه به اکشن‌هایی که دیده و ممکنه هیچ‌وقت کشف نکنه که اون اکشن امتحان‌نشده بهتر بوده. برای همین، معمولاً کاری می‌کنیم که exploration همیشه یه‌جوری ادامه داشته باشه؛ یا با **exploring starts**، یا با policyهای $\\epsilon$-greedy / $\\epsilon$-soft که گاهی اکشن‌های غیر-greedy هم می‌زنن.
+
+- **Exploring Starts:** یه فرض تئوریک معروف توی Monte Carlo control اینه که هر episode از یه زوج state-action تصادفی شروع می‌شه. یعنی برای هر $(s,a)$ یه احتمال غیرصفر هست که شروع یه episode بشه. وقتی episode زیاد تولید کنی، این تضمین می‌ده که همه‌ی زوج‌ها بالاخره دیده می‌شن و در نتیجه برای همه‌شون $Q(s,a)$ یه تخمین پیدا می‌کنه. این فرض برای اثبات‌ها خیلی تمیزه، ولی همیشه توی عمل شدنی نیست (چون شاید نتونی environment رو مجبور کنی از هر state-actionی که خواستی شروع کنه).
+
+- **$\\epsilon$-Soft Policies:** یه راه عملی‌تر اینه که policy رو $\\epsilon$-soft نگه داری. یعنی توی هر state، با احتمال $1-\\epsilon$ اکشن greedy (اکشنی که $Q$ رو maximize می‌کنه) رو انتخاب کن، و با احتمال $\\epsilon$ یه اکشن تصادفی (مثلاً یکنواخت از بین اکشن‌ها) انتخاب کن. این‌طوری policy همه اکشن‌ها رو بارها و بارها امتحان می‌کنه (یعنی وقتی episodeها ادامه پیدا کنن، معمولاً $N(s,a)\\to\\infty$) و همزمان کم‌کم bias می‌شه سمت اکشن‌های بهتر. می‌تونی $\\epsilon$ رو با زمان کم کنی تا وقتی مطمئن‌تر شدی، exploration کمتر بشه؛ یا خیلی آهسته $\\epsilon\\to 0$ ببری که در نهایت تقریباً greedy بشی. توی روایت Sutton و Barto، بعد از هر دورِ evaluation، policy رو نسبت به $Q$ به شکل $\\epsilon$-greedy می‌کنن تا policy همچنان $\\epsilon$-soft بمونه و قبل از همگرایی، کاملاً greedy نشه. در حد episodeهای خیلی زیاد (و اگر $\\epsilon$ هم درست schedule بشه)، این روند به policy بهینه نزدیک می‌شه؛ دقیق‌تر: به policy بهینه‌ی $\\epsilon$-soft همگرا می‌شه که برای $\\epsilon$ کوچک، خیلی نزدیک به optimum واقعی است.
+
+برای اینکه Monte Carlo control ملموس‌تر بشه، یه task اپیزودیک ساده رو تصور کن (مثلاً یه بازی کارتی مثل **blackjack**). با یه policy ساده شروع می‌کنی (مثلاً «روی ۱۵ stop کن»). با Monte Carlo prediction، action-valueها رو برای هر state (مثلاً hand بازیکن و کارت نمایانِ dealer) تحت همین policy estimate می‌کنی. بعد policy رو بهتر می‌کنی: برای هر hand تصمیم می‌گیری “hit” یا “stick” بسته به اینکه کدوم return تخمینی بالاتری می‌ده. حالا با این policy جدید، episodeهای بیشتری بازی می‌کنی، returnهای جدید جمع می‌کنی، $Q$ رو update می‌کنی، و دوباره policy رو improve می‌کنی. بعد از iteration کافی، این روند به یه strategy خیلی خوب (و در حالت ایده‌آل به strategy بهینه) نزدیک می‌شه. پس Monte Carlo control عملاً همون کاری رو می‌کنه که Dynamic Programming می‌کنه—پیدا کردن policy بهینه—با این تفاوت که اینجا به‌جای اینکه کل state-space رو با یه model معلوم sweep کنی، با تجربه‌ی sample‌شده پیش می‌ری.
+
+یه نکته‌ی مهم: Monte Carlo control همون‌طور که گفتیم، برای هر update به episode کامل نیاز داره؛ پس اگر episodeها طولانی باشن یا فضای state خیلی بزرگ باشه، ممکنه کند بشه (چون برای پوشش خوبش episodeهای زیادی لازم داری). از طرف دیگه، اوایل کار تخمین‌های value خیلی noisy هستن و policy improvement زودهنگام ممکنه با شانس گمراه بشه. برای همین معمولاً $\\epsilon$-greedy بودن یا اینکه قبل از تغییر policy، تجربه‌ی بیشتری جمع کنی می‌تونه کمک کنه. با این حال، از نظر ایده‌ی اصلی، Monte Carlo control خیلی سرراست می‌مونه: با میانگین‌گیری از returnها evaluate کن، بعد greedy improve کن. این دقیقاً یه نمونه از **model-free policy iteration**ـه که با تجربه‌های sample‌شده جلو می‌ره.
