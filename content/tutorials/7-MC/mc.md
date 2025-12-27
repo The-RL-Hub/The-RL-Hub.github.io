@@ -180,3 +180,69 @@ $$
 در عمل، روش‌هایی مثل importance sampling یا stratified sampling برای کاهش واریانس استفاده می‌شن، ولی اصل داستان همون سمپل و میانگین گرفتن ساده‌س.
 
 حالا که Monte Carlo estimation رو دیدیم، برمی‌گردیم سراغ RL. تو RL، روش‌های Monte Carlo همین ایده‌ها رو برای تخمین **value function**ها و **optimize کردن policy**ها از روی داده اپیزودیک به کار می‌گیرن. بخش‌های بعدی می‌گن چطوری سمپل‌گیری Monte Carlo برای **prediction** (تخمین ارزش یه policy مشخص) و **control** (بهبود تدریجی همون policy) استفاده می‌شه، به‌علاوه نکاتی مثل first-visit vs. every-visit averaging و آپدیت‌های incremental.
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Monte Carlo Prediction
+
+توی reinforcement learning، وقتی می‌گیم یه مسئله‌ی prediction، معمولاً منظورمون اینه که value function رو برای یه policy مشخصِ$\pi$ارزیابی کنیم. ایده‌ی Monte Carlo prediction اینه که$V^\pi(s)$(یا$Q^\pi(s,a)$) رو با استفاده از sample returnها از تعداد زیادی episode که توشون policy$\pi$رو دنبال می‌کنیم، تخمین بزنیم.
+
+یادآوری: یه episode یه دنباله از stateها، اکشن‌ها و ریواردهاست که از یه initial state شروع می‌شه و آخرش به یه terminal state می‌رسه و تموم می‌شه. مثلاً می‌تونه یه بار کامل بازی کردن از شروع تا پایان باشه، یا یه اجرای منفرد از یه ایجنت تا وقتی که به goal یا failure state برسه. به صورت تعریفی، یه episode یه trajectory می‌سازه:
+
+$$
+s_0,a_0,r_1,s_1,a_1,r_2,\ldots,s_{T-1},a_{T-1},r_T,\;s_T=terminal,
+$$
+
+که توش$r_t$ریواردیه که بعد از گرفتن اکشن$a_{t-1}$توی state$s_{t-1}$می‌گیریم (پس$r_t$مربوط به transition از$s_{t-1}$به$s_t$ـه). اندیس زمانی$t$هم گام‌های زمانی داخل episode رو می‌شمره. اگر episode توی گام$T$terminate بشه،$s_T$یه absorbing terminal stateـه و بعد از$r_T$دیگه هیچ ریواردی نداریم. طول episodeها می‌تونه ثابت باشه یا تصادفی، ولی طبق تعریفِ یه episodic task، هر episode بالاخره به یه terminal state ختم می‌شه.
+
+return از time step$t$به صورت جمعِ تجمعیِ discounted ریواردها از اون نقطه تا آخر episode تعریف می‌شه. اگر discount factor رو با$\gamma\in[0,1]$نشون بدیم، return یعنی$G_t$اینه:
+
+$$
+G_t=r_{t+1}+\gamma r_{t+2}+\gamma^2 r_{t+3}+\cdots+\gamma^{T-t-1}r_T.
+$$
+
+یا به یه شکل جمع‌بندی‌شده‌تر:
+
+$$
+G_t=\sum_{k=0}^{T-t-1}\gamma^k\,r_{t+1+k}.
+$$
+
+اگر$\gamma=1$باشه، return همون جمع ریواردها تا زمان termination می‌شه (برای episodic taskهایی که$T$محدودِ خیلی معنی‌دار و طبیعی‌ه). اگر$\gamma<1$باشه، ریواردهای آینده به صورت هندسی کم‌وزن می‌شن، که کمک می‌کنه$G_t$حتی توی infinite-horizon (continuing) taskها هم finite بمونه؛ هرچند Monte Carlo methodها معمولاً فرضِ episodic scenario (یا حداقل یه راهی برای truncate کردن episodeها) رو دارن.
+
+Monte Carlo prediction از همین returnها برای ارزیابی policy استفاده می‌کنه. طبق تعریف، مقدار$V^\pi(s)$برابر امیدریاضی returnـه وقتی از state$s$شروع می‌کنیم و بعدش policy$\pi$رو جلو می‌ریم:
+
+$$
+V^\pi(s)=\mathbb{E}_\pi[\,G_t\mid s_t=s\,],
+$$
+
+یعنی فرض می‌کنیم تو زمان$t$ایجنت تو state$s$قرار داره و از اون به بعد مطابق$\pi$رفتار می‌کنه. نکته‌ی مهم اینه که Monte Carlo methodها لازم ندارن state transition probabilityها یا reward function رو بدونن؛ به جاش این expectation رو به صورت تجربی و با میانگین گرفتن از returnهای واقعی‌ای که از visitهای متعددِ state$s$تحت policy$\pi$می‌بینیم، تقریب می‌زنن.
+
+به طور مشخص، فرض کن ایجنت policy$\pi$رو برای$N$تا episode دنبال می‌کنه. هر بار که state$s$توی این episodeها دیده می‌شه، return مربوط به بعدش رو ثبت می‌کنیم. فرض کن تو کل این episodeها،$s$جمعاً$N(s)$بار visited می‌شه. این رخدادها رو با زمان‌های$t_1,t_2,\ldots,t_{N(s)}$نشون می‌دیم (هر$t_i$یه اندیس زمانی داخل یه episodeـه که ایجنت تو state$s$بوده؛ اگر first-visit MC انجام بدیم، منظور اولین باریه که$s$تو اون episode دیده شده). پس یه مجموعه return داریم:$\{G_{t_1},G_{t_2},\ldots,G_{t_{N(s)}}\}$که هر$G_{t_i}$هم return بعد از همون visit به$s$ـه. حالا تخمین Monte Carlo از$V^\pi(s)$می‌شه میانگین این returnها:
+
+$$
+V^\pi(s)\approx\frac{1}{N(s)}\sum_{i=1}^{N(s)}G_{t_i}.
+$$
+
+این در اصل یه sample mean ساده‌ست. طبیعتاً وقتی$N(s)\to\infty$(با این فرض که policy و environment ثابت و stationary بمونن)، این مقدار به$V^\pi(s)$واقعی converge می‌کنه، چون عملاً داریم expectationِ$G_t$رو با Monte Carlo sampling حساب می‌کنیم. از اون‌جایی که هر episode کامل یه sample از اینه که «از state$s$به بعد چه total ریواردی جمع می‌شه»، میانگین گرفتن از episodeهای مستقلِ زیاد، یه برآورد قابل‌اتکا از expected return می‌ده.
+
+یه نکته‌ی خیلی کلیدی اینه که Monte Carlo evaluation تا وقتی episode تموم نشه، value estimateها رو update نمی‌کنه. یعنی فقط بعد از این‌که outcome واقعیِ episode رو دیدیم (همون total return)، این method میاد به stateها credit می‌ده. این با Temporal-Difference methodها فرق داره که بعد از هر گام و با bootstrapping valueها رو update می‌کنن. Monte Carlo از نتیجه‌ی کاملِ episode استفاده می‌کنه و عملاً bootstrapping bias نداره. ولی در عوض این یعنی Monte Carlo methodها به شکل مستقیم بیشتر برای episodic taskها جا می‌افتن—چون value هر state رو با یه دنباله ریوارد تعریف می‌کنیم که نهایتاً terminate می‌شه. توی یه continuing task (که episode طبیعی نداره)، یا باید خودمون episode cutoff بذاریم، یا کلاً به جای اون از TD methodها استفاده کنیم. تو عمل البته می‌شه Monte Carlo رو برای continuing taskها هم با truncating episodeها یا با$\gamma<1$(که باعث می‌شه returnها همگرا بمونن) به کار برد، ولی حالت episodic معمولاً شفاف‌تره.
+
+**Updating Value Estimates:** بعد از این‌که تعداد زیادی episode تحت policy$\pi$اجرا کردیم، می‌تونیم برای همه‌ی stateهایی که visited شدن یه value function تجربی$V^\pi(s)$بسازیم. توی پیاده‌سازی، معمولاً$V(s)$رو یه جور دلخواه initialize می‌کنن و بعد returnها رو به صورت incremental داخل$V(s)$میانگین می‌گیرن. مثلاً هر بار که state$s$visited می‌شه و یه return به اسم$G$می‌بینیم، می‌شه این update رو انجام داد:
+
+$$
+V(s)\leftarrow V(s)+\alpha[\,G-V(s)\,],
+$$
+
+که توش$\alpha=\frac{1}{N(s)}$رو به عنوان stepsize (یعنی معکوس تعداد visitها) در نظر می‌گیریم. این دقیقاً معادل اینه که مجموع returnها رو جمع کنیم و بر تعدادشون تقسیم کنیم، با این فرق که اجازه می‌ده آنلاین و incremental جلو بریم، بدون این‌که لازم باشه همه‌ی returnهای قبلی رو نگه داریم. ما این فرمولِ “incremental Monte Carlo” رو تو بخش 3.6 بیشتر باز می‌کنیم، ولی شهودش اینه که یه running average انجام می‌ده: بعد از$n$بار visit،$V(s)$می‌شه میانگین همون$n$تا return.
+
+Monte Carlo prediction یه روش model-freeـه: ایجنت لازم نیست transition probabilityها یا expected rewardها رو بدونه، فقط کافیه policy رو دنبال کنه و ببینه چی می‌شه. همین باعث می‌شه خیلی general باشه—حتی می‌شه صرفاً با مشاهده‌ی experienceهای یه ایجنت ازش استفاده کرد (حتی off-policy هم شدنیه، که اون موقع به importance sampling correction نیاز داریم، هرچند این فعلاً خارج از scope ماست). نقطه‌ضعفش اینه که ممکنه برای دقیق شدن estimateها به episodeهای زیادی نیاز داشته باشه، مخصوصاً برای stateهایی که variance returnشون بالاست. علاوه بر این، چون updateها فقط وقتی episode کامل تموم شد اتفاق می‌افتن، اگر episodeها طولانی باشن learning می‌تونه کند پیش بره. با این حال، Monte Carlo methodها از نظر مفهومی خیلی ساده‌ن و یه راه نسبتاً unbiased می‌دن برای یاد گرفتن valueها مستقیم از experience. تو موقعیت‌هایی مثل بازی‌ها یا simulationها که می‌تونیم episodeهای زیادی تولید کنیم، Monte Carlo eva
