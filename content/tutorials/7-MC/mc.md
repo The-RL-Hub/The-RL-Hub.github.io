@@ -193,59 +193,62 @@ $$
 
 
 
-### Monte Carlo Prediction
+### 3.3. Monte Carlo Prediction
 
-توی reinforcement learning، وقتی می‌گیم یه مسئله‌ی prediction، معمولاً منظورمون اینه که value function رو برای یه policy مشخصِ$\pi$ارزیابی کنیم. ایده‌ی Monte Carlo prediction اینه که$V^\pi(s)$(یا$Q^\pi(s,a)$) رو با استفاده از sample returnها از تعداد زیادی episode که توشون policy$\pi$رو دنبال می‌کنیم، تخمین بزنیم.
+توی reinforcement learning، وقتی می‌گیم یه مسئله‌ی prediction، معمولاً منظورمون اینه که value function رو برای یه policy مشخصِ $\pi$ ارزیابی کنیم. ایده‌ی Monte Carlo prediction اینه که $V^\pi(s)$ (یا $Q^\pi(s,a)$) رو با استفاده از سمپل ریترنها از تعداد زیادی episode که توشون policy $\pi$ رو دنبال می‌کنیم، تخمین بزنیم.
 
-یادآوری: یه episode یه دنباله از stateها، اکشن‌ها و ریواردهاست که از یه initial state شروع می‌شه و آخرش به یه terminal state می‌رسه و تموم می‌شه. مثلاً می‌تونه یه بار کامل بازی کردن از شروع تا پایان باشه، یا یه اجرای منفرد از یه ایجنت تا وقتی که به goal یا failure state برسه. به صورت تعریفی، یه episode یه trajectory می‌سازه:
-
-$$
-s_0,a_0,r_1,s_1,a_1,r_2,\ldots,s_{T-1},a_{T-1},r_T,\;s_T=terminal,
-$$
-
-که توش$r_t$ریواردیه که بعد از گرفتن اکشن$a_{t-1}$توی state$s_{t-1}$می‌گیریم (پس$r_t$مربوط به transition از$s_{t-1}$به$s_t$ـه). اندیس زمانی$t$هم گام‌های زمانی داخل episode رو می‌شمره. اگر episode توی گام$T$terminate بشه،$s_T$یه absorbing terminal stateـه و بعد از$r_T$دیگه هیچ ریواردی نداریم. طول episodeها می‌تونه ثابت باشه یا تصادفی، ولی طبق تعریفِ یه episodic task، هر episode بالاخره به یه terminal state ختم می‌شه.
-
-return از time step$t$به صورت جمعِ تجمعیِ discounted ریواردها از اون نقطه تا آخر episode تعریف می‌شه. اگر discount factor رو با$\gamma\in[0,1]$نشون بدیم، return یعنی$G_t$اینه:
+یادآوری: یه episode یه دنباله از استیتها، اکشن‌ها و ریواردهاست که از یه initial state شروع می‌شه و آخرش به یه terminal استیت می‌رسه و تموم می‌شه. مثلاً می‌تونه یه بار کامل بازی کردن از شروع تا پایان باشه، یا یه اجرای منفرد از یه ایجنت تا وقتی که به goal یا failure استیت برسه. به صورت تعریفی، یه episode یه trajectory می‌سازه:
 
 $$
-G_t=r_{t+1}+\gamma r_{t+2}+\gamma^2 r_{t+3}+\cdots+\gamma^{T-t-1}r_T.
+s_0, a_0, r_1, s_1, a_1, r_2, \ldots, s_{T-1}, a_{T-1}, r_T, \; s_T = terminal,
+$$
+
+که توش $r_t$ ریواردیه که بعد از گرفتن اکشن $a_{t-1}$ توی استیت $s_{t-1}$ می‌گیریم (پس $r_t$ مربوط به transition از $s_{t-1}$ به $s_t$ـه). اندیس زمانی $t$ هم گام‌های زمانی داخل episode رو می‌شمره. اگر episode توی گام $T$ terminate بشه، $s_T$ یه absorbing terminal استیتـه و بعد از $r_T$ دیگه هیچ ریواردی نداریم. طول episodeها می‌تونه ثابت باشه یا تصادفی، ولی طبق تعریفِ یه episodic task، هر episode بالاخره به یه terminal استیت ختم می‌شه.
+
+ریترن از time step $t$ به صورت جمعِ تجمعیِ discounted ریواردها از اون نقطه تا آخر episode تعریف می‌شه. اگر discount factor رو با $\gamma \in [0,1]$ نشون بدیم، ریترن یعنی $G_t$ اینه:
+
+$$
+G_t = r_{t+1} + \gamma r_{t+2} + \gamma^2 r_{t+3} + \cdots + \gamma^{T-t-1} r_T.
 $$
 
 یا به یه شکل جمع‌بندی‌شده‌تر:
 
 $$
-G_t=\sum_{k=0}^{T-t-1}\gamma^k\,r_{t+1+k}.
+G_t = \sum_{k=0}^{T-t-1} \gamma^k\, r_{t+1+k}.
 $$
 
-اگر$\gamma=1$باشه، return همون جمع ریواردها تا زمان termination می‌شه (برای episodic taskهایی که$T$محدودِ خیلی معنی‌دار و طبیعی‌ه). اگر$\gamma<1$باشه، ریواردهای آینده به صورت هندسی کم‌وزن می‌شن، که کمک می‌کنه$G_t$حتی توی infinite-horizon (continuing) taskها هم finite بمونه؛ هرچند Monte Carlo methodها معمولاً فرضِ episodic scenario (یا حداقل یه راهی برای truncate کردن episodeها) رو دارن.
+اگر $\gamma=1$ باشه، ریترن همون جمع ریواردها تا زمان termination می‌شه (برای episodic taskهایی که $T$ محدودِ خیلی معنی‌دار و طبیعی‌ه). اگر $\gamma < 1$ باشه، ریواردهای آینده به صورت هندسی کم‌وزن می‌شن، که کمک می‌کنه $G_t$ حتی توی infinite-horizon (continuing) taskها هم finite بمونه؛ هرچند Monte Carlo methodها معمولاً فرضِ episodic scenario (یا حداقل یه راهی برای truncate کردن episodeها) رو دارن.
 
-Monte Carlo prediction از همین returnها برای ارزیابی policy استفاده می‌کنه. طبق تعریف، مقدار$V^\pi(s)$برابر امیدریاضی returnـه وقتی از state$s$شروع می‌کنیم و بعدش policy$\pi$رو جلو می‌ریم:
-
-$$
-V^\pi(s)=\mathbb{E}_\pi[\,G_t\mid s_t=s\,],
-$$
-
-یعنی فرض می‌کنیم تو زمان$t$ایجنت تو state$s$قرار داره و از اون به بعد مطابق$\pi$رفتار می‌کنه. نکته‌ی مهم اینه که Monte Carlo methodها لازم ندارن state transition probabilityها یا reward function رو بدونن؛ به جاش این expectation رو به صورت تجربی و با میانگین گرفتن از returnهای واقعی‌ای که از visitهای متعددِ state$s$تحت policy$\pi$می‌بینیم، تقریب می‌زنن.
-
-به طور مشخص، فرض کن ایجنت policy$\pi$رو برای$N$تا episode دنبال می‌کنه. هر بار که state$s$توی این episodeها دیده می‌شه، return مربوط به بعدش رو ثبت می‌کنیم. فرض کن تو کل این episodeها،$s$جمعاً$N(s)$بار visited می‌شه. این رخدادها رو با زمان‌های$t_1,t_2,\ldots,t_{N(s)}$نشون می‌دیم (هر$t_i$یه اندیس زمانی داخل یه episodeـه که ایجنت تو state$s$بوده؛ اگر first-visit MC انجام بدیم، منظور اولین باریه که$s$تو اون episode دیده شده). پس یه مجموعه return داریم:$\{G_{t_1},G_{t_2},\ldots,G_{t_{N(s)}}\}$که هر$G_{t_i}$هم return بعد از همون visit به$s$ـه. حالا تخمین Monte Carlo از$V^\pi(s)$می‌شه میانگین این returnها:
+Monte Carlo prediction از همین ریترنها برای ارزیابی policy استفاده می‌کنه. طبق تعریف، مقدار $V^\pi(s)$ برابر امیدریاضی ریترنـه وقتی از استیت $s$ شروع می‌کنیم و بعدش policy $\pi$ رو جلو می‌ریم:
 
 $$
-V^\pi(s)\approx\frac{1}{N(s)}\sum_{i=1}^{N(s)}G_{t_i}.
+V^\pi(s) = \mathbb{E}_\pi[\,G_t \mid s_t = s\,],
 $$
 
-این در اصل یه sample mean ساده‌ست. طبیعتاً وقتی$N(s)\to\infty$(با این فرض که policy و environment ثابت و stationary بمونن)، این مقدار به$V^\pi(s)$واقعی converge می‌کنه، چون عملاً داریم expectationِ$G_t$رو با Monte Carlo sampling حساب می‌کنیم. از اون‌جایی که هر episode کامل یه sample از اینه که «از state$s$به بعد چه total ریواردی جمع می‌شه»، میانگین گرفتن از episodeهای مستقلِ زیاد، یه برآورد قابل‌اتکا از expected return می‌ده.
+یعنی فرض می‌کنیم تو زمان $t$ ایجنت تو استیت $s$ قرار داره و از اون به بعد مطابق $\pi$ رفتار می‌کنه. نکته‌ی مهم اینه که Monte Carlo methodها لازم ندارن استیت transition probabilityها یا ریوارد function رو بدونن؛ به جاش این expectation رو به صورت تجربی و با میانگین گرفتن از ریترنهای واقعی‌ای که از visitهای متعددِ استیت $s$ تحت policy $\pi$ می‌بینیم، تقریب می‌زنن.
 
-یه نکته‌ی خیلی کلیدی اینه که Monte Carlo evaluation تا وقتی episode تموم نشه، value estimateها رو update نمی‌کنه. یعنی فقط بعد از این‌که outcome واقعیِ episode رو دیدیم (همون total return)، این method میاد به stateها credit می‌ده. این با Temporal-Difference methodها فرق داره که بعد از هر گام و با bootstrapping valueها رو update می‌کنن. Monte Carlo از نتیجه‌ی کاملِ episode استفاده می‌کنه و عملاً bootstrapping bias نداره. ولی در عوض این یعنی Monte Carlo methodها به شکل مستقیم بیشتر برای episodic taskها جا می‌افتن—چون value هر state رو با یه دنباله ریوارد تعریف می‌کنیم که نهایتاً terminate می‌شه. توی یه continuing task (که episode طبیعی نداره)، یا باید خودمون episode cutoff بذاریم، یا کلاً به جای اون از TD methodها استفاده کنیم. تو عمل البته می‌شه Monte Carlo رو برای continuing taskها هم با truncating episodeها یا با$\gamma<1$(که باعث می‌شه returnها همگرا بمونن) به کار برد، ولی حالت episodic معمولاً شفاف‌تره.
-
-**Updating Value Estimates:** بعد از این‌که تعداد زیادی episode تحت policy$\pi$اجرا کردیم، می‌تونیم برای همه‌ی stateهایی که visited شدن یه value function تجربی$V^\pi(s)$بسازیم. توی پیاده‌سازی، معمولاً$V(s)$رو یه جور دلخواه initialize می‌کنن و بعد returnها رو به صورت incremental داخل$V(s)$میانگین می‌گیرن. مثلاً هر بار که state$s$visited می‌شه و یه return به اسم$G$می‌بینیم، می‌شه این update رو انجام داد:
+به طور مشخص، فرض کن ایجنت policy $\pi$ رو برای $N$ تا episode دنبال می‌کنه. هر بار که استیت $s$ توی این episodeها دیده می‌شه، ریترن مربوط به بعدش رو ثبت می‌کنیم. فرض کن تو کل این episodeها، $s$ جمعاً $N(s)$ بار visited می‌شه. این رخدادها رو با زمان‌های $t_1, t_2, \ldots, t_{N(s)}$ نشون می‌دیم (هر $t_i$ یه اندیس زمانی داخل یه episodeـه که ایجنت تو استیت $s$ بوده؛ اگر first-visit MC انجام بدیم، منظور اولین باریه که $s$ تو اون episode دیده شده). پس یه مجموعه ریترن داریم: $\{G_{t_1}, G_{t_2}, \ldots, G_{t_{N(s)}}\}$ که هر $G_{t_i}$ هم ریترن بعد از همون visit به $s$ـه. حالا تخمین Monte Carlo از $V^\pi(s)$ می‌شه میانگین این ریترنها:
 
 $$
-V(s)\leftarrow V(s)+\alpha[\,G-V(s)\,],
+V^\pi(s) \approx \frac{1}{N(s)} \sum_{i=1}^{N(s)} G_{t_i}.
 $$
 
-که توش$\alpha=\frac{1}{N(s)}$رو به عنوان stepsize (یعنی معکوس تعداد visitها) در نظر می‌گیریم. این دقیقاً معادل اینه که مجموع returnها رو جمع کنیم و بر تعدادشون تقسیم کنیم، با این فرق که اجازه می‌ده آنلاین و incremental جلو بریم، بدون این‌که لازم باشه همه‌ی returnهای قبلی رو نگه داریم. ما این فرمولِ “incremental Monte Carlo” رو تو بخش 3.6 بیشتر باز می‌کنیم، ولی شهودش اینه که یه running average انجام می‌ده: بعد از$n$بار visit،$V(s)$می‌شه میانگین همون$n$تا return.
+این در اصل یه sample-mean ساده‌ست. طبیعتاً وقتی $N(s)\to\infty$ (با این فرض که policy و environment ثابت و stationary بمونن)، این مقدار به $V^\pi(s)$ واقعی کانورج می‌کنه، چون عملاً داریم expectationِ $G_t$ رو با Monte Carlo sampling حساب می‌کنیم. از اون‌جایی که هر episode کامل یه سمپل از اینه که «از استیت $s$ به بعد چه total ریواردی جمع می‌شه»، میانگین گرفتن از episodeهای مستقلِ زیاد، یه برآورد قابل‌اتکا از expected ریترن می‌ده.
 
-Monte Carlo prediction یه روش model-freeـه: ایجنت لازم نیست transition probabilityها یا expected rewardها رو بدونه، فقط کافیه policy رو دنبال کنه و ببینه چی می‌شه. همین باعث می‌شه خیلی general باشه—حتی می‌شه صرفاً با مشاهده‌ی experienceهای یه ایجنت ازش استفاده کرد (حتی off-policy هم شدنیه، که اون موقع به importance sampling correction نیاز داریم، هرچند این فعلاً خارج از scope ماست). نقطه‌ضعفش اینه که ممکنه برای دقیق شدن estimateها به episodeهای زیادی نیاز داشته باشه، مخصوصاً برای stateهایی که variance returnشون بالاست. علاوه بر این، چون updateها فقط وقتی episode کامل تموم شد اتفاق می‌افتن، اگر episodeها طولانی باشن learning می‌تونه کند پیش بره. با این حال، Monte Carlo methodها از نظر مفهومی خیلی ساده‌ن و یه راه نسبتاً unbiased می‌دن برای یاد گرفتن valueها مستقیم از experience. تو موقعیت‌هایی مثل بازی‌ها یا simulationها که می‌تونیم episodeهای زیادی تولید کنیم، Monte Carlo eva
+یه نکته‌ی خیلی کلیدی اینه که Monte Carlo evaluation تا وقتی episode تموم نشه، value estimateها رو update نمی‌کنه. یعنی فقط بعد از این‌که outcome واقعیِ episode رو دیدیم (همون total ریترن)، این method میاد به استیتها credit می‌ده. این با Temporal-Difference methodها فرق داره که بعد از هر گام و با bootstrapping valueها رو update می‌کنن. Monte Carlo از نتیجه‌ی کاملِ episode استفاده می‌کنه و عملاً bootstrapping bias نداره. ولی در عوض این یعنی Monte Carlo methodها به شکل مستقیم بیشتر برای episodic taskها جا می‌افتن—چون value هر استیت رو با یه دنباله ریوارد تعریف می‌کنیم که نهایتاً terminate می‌شه. توی یه continuing task (که episode طبیعی نداره)، یا باید خودمون episode cutoff بذاریم، یا کلاً به جای اون از TD methodها استفاده کنیم. تو عمل البته می‌شه Monte Carlo رو برای continuing taskها هم با truncating episodeها یا با $\gamma<1$ (که باعث می‌شه ریترنها همگرا بمونن) به کار برد، ولی حالت episodic معمولاً شفاف‌تره.
+
+**Updating Value Estimates:** بعد از این‌که تعداد زیادی episode تحت policy $\pi$ اجرا کردیم، می‌تونیم برای همه‌ی استیتهایی که visited شدن یه value function تجربی $V^\pi(s)$ بسازیم. توی پیاده‌سازی، معمولاً $V(s)$ رو یه جور دلخواه initialize می‌کنن و بعد ریترنها رو به صورت incremental داخل $V(s)$ میانگین می‌گیرن. مثلاً هر بار که استیت $s$ visited می‌شه و یه ریترن به اسم $G$ می‌بینیم، می‌شه این update رو انجام داد:
+
+$$
+V(s) \leftarrow V(s) + \alpha\,[\,G - V(s)\,],
+$$
+
+که توش $\alpha = \frac{1}{N(s)}$ رو به عنوان stepsize (یعنی معکوس تعداد visitها) در نظر می‌گیریم. این دقیقاً معادل اینه که مجموع ریترنها رو جمع کنیم و بر تعدادشون تقسیم کنیم، با این فرق که اجازه می‌ده آنلاین و incremental جلو بریم، بدون این‌که لازم باشه همه‌ی ریترنهای قبلی رو نگه داریم. ما این فرمولِ “incremental Monte Carlo” رو تو بخش 3.6 بیشتر باز می‌کنیم، ولی شهودش اینه که یه running average انجام می‌ده: بعد از $n$ بار visit، $V(s)$ می‌شه میانگین همون $n$ تا ریترن.
+
+Monte Carlo prediction یه روش model-freeـه: ایجنت لازم نیست transition probabilityها یا expected ریواردها رو بدونه، فقط کافیه policy رو دنبال کنه و ببینه چی می‌شه. همین باعث می‌شه خیلی general باشه—حتی می‌شه صرفاً با مشاهده‌ی experienceهای یه ایجنت ازش استفاده کرد (حتی off-policy هم شدنیه، که اون موقع به importance sampling correction نیاز داریم، هرچند این فعلاً خارج از scope ماست). نقطه‌ضعفش اینه که ممکنه برای دقیق شدن estimateها به episodeهای زیادی نیاز داشته باشه، مخصوصاً برای استیتهایی که variance ریترنشون بالاست. علاوه بر این، چون updateها فقط وقتی episode کامل تموم شد اتفاق می‌افتن، اگر episodeها طولانی باشن learning می‌تونه کند پیش بره. با این حال، Monte Carlo methodها از نظر مفهومی خیلی ساده‌ن و یه راه نسبتاً unbiased می‌دن برای یاد گرفتن valueها مستقیم از experience. تو موقعیت‌هایی مثل بازی‌ها یا simulationها که می‌تونیم episodeهای زیادی تولید کنیم، Monte Carlo evaluation کاملاً می‌تونه گزینه‌ی خوبی باشه.
+
+در نهایت، خلاصه‌ی Monte Carlo prediction اینه: با policy $\pi$ episode تولید می‌کنیم، ریترنهای بعد از هر استیت رو ثبت می‌کنیم، و بعد اون ریترنها رو میانگین می‌گیریم تا $V^\pi(s)$ رو تخمین بزنیم. اگر exploration کافی داشته باشیم (یعنی هر استیت در حدِ limit، تو موقعیت‌های متنوع، بی‌نهایت بار visited بشه)، قانون اعداد بزرگ تضمین می‌کنه که $V(s)$ به value واقعی converge می‌کنه. هیچ دانشی از dynamics environment لازم نیست—یادگیری فقط از outcomeهای سمپل شده میاد.
+
 
 
 
@@ -257,41 +260,51 @@ Monte Carlo prediction یه روش model-freeـه: ایجنت لازم نیست 
 
 ## Monte Carlo Control
 
-هدف آخرِ کار توی reinforcement learning این نیست که فقط یه policy مشخص رو evaluate کنیم و بگیم «خب این چقدر خوبه»، هدف اینه که **policy رو بهتر و بهتر کنیم** تا returnها (یعنی جمع ریواردها) بیشتر بشه. روش‌های **Monte Carlo control** دقیقاً همین کار رو می‌کنن: با تخمین‌های Monte Carlo برای **action-value**ها، policy رو مرحله‌به‌مرحله optimize می‌کنن. ایده‌ی کلی خیلی ساده‌ست: هی بین دو تا کار رفت‌وبرگشت می‌کنیم—اول **evaluation** (با sample گرفتن و تخمین زدن اینکه policy فعلی چقدر می‌ارزه) و بعد **improvement** (greedy‌تر کردن policy نسبت به همون تخمین‌ها). این دقیقاً همون حسِ **policy iteration** رو می‌ده.
+هدف آخرِ کار توی reinforcement learning این نیست که فقط یه policy مشخص رو evaluate کنیم و بگیم «خب این چقدر خوبه»، هدف اینه که **policy رو بهتر و بهتر کنیم** تا ریترنها (یعنی جمع ریواردها) بیشتر بشه. روش‌های **Monte Carlo control** دقیقاً همین کار رو می‌کنن: با تخمین‌های Monte Carlo برای **action-value**ها، policy رو مرحله‌به‌مرحله optimize می‌کنن. ایده‌ی کلی خیلی ساده‌ست: هی بین دو تا کار رفت‌وبرگشت می‌کنیم—اول **evaluation** (با سمپل گرفتن و تخمین زدن اینکه policy فعلی چقدر می‌ارزه) و بعد **improvement** (greedy‌تر کردن policy نسبت به همون تخمین‌ها). این دقیقاً همون حسِ **policy iteration** رو می‌ده.
 
 اینجا تمرکز روی **on-policy Monte Carlo control**ـه؛ یعنی همون policy که باهاش episode تولید می‌کنی، همون policy هم هست که داری update می‌کنی تا کم‌کم به policy بهینه برسی. یه نسخه‌ی پایه از Monte Carlo control معمولاً این شکلی جلو می‌ره:
+
+![1graph](Pictures/3.png)
 
 1) **Initialize** یه policy دلخواه $\pi$ (بهتره $\pi$ **soft** باشه، یعنی برای همه‌ی اکشن‌ها داشته باشیم $\pi(a|s)>0$، تا exploration تضمین بشه). معمولاً از یه policy تصادفی شروع می‌کنیم که همه اکشن‌ها رو یه‌جوری امتحان می‌کنه.
 
 2) **Generate Episodes:** هی episode تولید کن و policy فعلی $\pi$ رو دنبال کن. برای هر episode، دنباله‌ی stateها، اکشن‌ها و ریواردها رو نگه دار. نکته‌ی مهم اینه که با گذشت زمان، episode کافی بسازی تا زوج‌های $(s,a)$ به‌اندازه‌ی کافی دیده بشن. (توی Monte Carlo معمولاً یه فرض رایج داریم به اسم **exploring starts**: یعنی هر episode از یه state تصادفی با یه اکشن تصادفی شروع می‌شه تا هر $(s,a)$ بالاخره شانس دیده‌شدن داشته باشه. یا می‌تونی به‌جاش از یه policy مثل $\epsilon$-greedy استفاده کنی که باز هم exploration رو تضمین می‌کنه — پایین‌تر بیشتر می‌گیم.)
 
-3) **Estimate Action Values:** با همون داده‌ی episodeها، returnها رو برای هر زوج state-اکشنی که دیده شده حساب کن. یعنی هر وقت یه $(s,a)$ توی زمان $t$ توی episode ظاهر شد، return بعدش رو به‌صورت $G_t$ حساب کن. بعد تخمین **action-value** یعنی $Q^\pi(s,a)$ رو با میانگین‌گیری از همین returnها update کن. اگر $N(s,a)$ تعداد دفعاتی باشه که $(s,a)$ دیده شده و $G_1,G_2,\dots,G_{N(s,a)}$ هم returnها باشن، داریم:
+3) **Estimate Action Values:** با همون داده‌ی episodeها، ریترنها رو برای هر زوج استیت-اکشنی که دیده شده حساب کن. یعنی هر وقت یه $(s,a)$ توی زمان $t$ توی episode ظاهر شد، ریترن بعدش رو به‌صورت $G_t$ حساب کن. بعد تخمین **action-value** یعنی $Q^\pi(s,a)$ رو با میانگین‌گیری از همین ریترنها update کن. اگر $N(s,a)$ تعداد دفعاتی باشه که $(s,a)$ دیده شده و $G_1,G_2,\dots,G_{N(s,a)}$ هم ریترنها باشن، داریم:
 
 $$
 Q^\pi(s,a)=\frac{1}{N(s,a)}\sum_{i=1}^{N(s,a)} G_i
 $$
 
-یعنی همون sample meanِ returnها برای اون state-action. (این کار رو می‌شه incremental هم انجام داد که لازم نباشه همه‌ی returnها رو ذخیره کنی.) عملاً این همون Monte Carlo **policy evaluation**ـه، فقط به‌جای state-value، داریم **action-value** رو estimate می‌کنیم: یعنی می‌گه «اگر توی state $s$ اکشن $a$ رو بزنی و بعدش ادامه بدی با policy $\pi$، ارزشِ تخمینیِ این کار چقدره؟»
+یعنی همون سمپل meanِ ریترنها برای اون state-action. (این کار رو می‌شه incremental هم انجام داد که لازم نباشه همه‌ی ریترنها رو ذخیره کنی.) عملاً این همون Monte Carlo **policy evaluation**ـه، فقط به‌جای state-value، داریم **action-value** رو estimate می‌کنیم: یعنی می‌گه «اگر توی استیت $s$ اکشن $a$ رو بزنی و بعدش ادامه بدی با policy $\pi$، ارزشِ تخمینیِ این کار چقدره؟»
 
-4) **Policy Improvement:** حالا policy رو بهتر کن، یعنی نسبت به $Q$ greedy‌ترش کن. برای هر state $s$، اکشنی رو انتخاب کن که طبق $Q^\pi(s,a)$ بهترین به نظر می‌رسه:
+4) **Policy Improvement:** حالا policy رو بهتر کن، یعنی نسبت به $Q$ greedy‌ترش کن. برای هر استیت $s$، اکشنی رو انتخاب کن که طبق $Q^\pi(s,a)$ بهترین به نظر می‌رسه:
 
 $$
 \pi_{\text{new}}(s)=\arg\max_a Q^\pi(s,a)
 $$
 
-یعنی اکشنی که بیشترین return تخمینی رو می‌ده. اگر tie شد، هر جور دوست داری می‌تونی tie رو بشکنی. این مرحله یه policy greedy $\pi_{\text{new}}$ می‌ده که (طبق policy improvement theorem) حداقل از policy قبلی بدتر نیست، و معمولاً بهتره—حداقل روی stateهایی که واقعاً دیده شدن و تخمین داریم.
+یعنی اکشنی که بیشترین ریترن تخمینی رو می‌ده. اگر tie شد، هر جور دوست داری می‌تونی tie رو بشکنی. این مرحله یه policy greedy $\pi_{\text{new}}$ می‌ده که (طبق policy improvement theorem) حداقل از policy قبلی بدتر نیست، و معمولاً بهتره—حداقل روی استیتهایی که واقعاً دیده شدن و تخمین داریم.
 
 5) **Repeat:** $\pi$ رو با $\pi_{\text{new}}$ جایگزین کن و این روند رو ادامه بده: با policy جدید episodeهای بیشتری بساز، دوباره $Q$ رو evaluate کن، دوباره policy رو improve کن. اگر تخمین‌های $Q$ کم‌کم دقیق‌تر بشن، این iterationها باعث می‌شن policy به $\pi^*$ نزدیک بشه و $Q^\pi(s,a)$ هم به **optimal action-value function** یعنی $Q^*(s,a)$ نزدیک بشه.
 
-این در واقع یه نسخه‌ی on-policy از **generalized policy iteration (GPI)**ـه. از نظر تئوری می‌گن اگر هر زوج state-action بی‌نهایت بار explore بشه و ما هر بار به‌صورت greedy policy رو improve کنیم، با احتمال 1 به یه policy بهینه همگرا می‌شیم. ولی یه نکته‌ی خیلی مهم این وسط explorationـه: اگر هر بار policy رو کاملاً deterministically و صددرصد greedy کنی، ممکنه خیلی زود گیر کنی. مثلاً فرض کن policy اولیه $\pi$ شانسی هیچ‌وقت یه اکشن $a$ رو توی یه state $s$ امتحان نکنه؛ اون وقت $Q(s,a)$ عملاً unknown می‌مونه. اگر زود policy رو greedy کنی، policy می‌چسبه به اکشن‌هایی که دیده و ممکنه هیچ‌وقت کشف نکنه که اون اکشن امتحان‌نشده بهتر بوده. برای همین، معمولاً کاری می‌کنیم که exploration همیشه یه‌جوری ادامه داشته باشه؛ یا با **exploring starts**، یا با policyهای $\epsilon$-greedy / $\epsilon$-soft که گاهی اکشن‌های غیر-greedy هم می‌زنن.
+این در واقع یه نسخه‌ی on-policy از **generalized policy iteration (GPI)**ـه. از نظر تئوری می‌گن اگر هر زوج state-action بی‌نهایت بار explore بشه و ما هر بار به‌صورت greedy policy رو improve کنیم، با احتمال 1 به یه policy بهینه همگرا می‌شیم. ولی یه نکته‌ی خیلی مهم این وسط explorationـه: اگر هر بار policy رو کاملاً deterministically و صددرصد greedy کنی، ممکنه خیلی زود گیر کنی. مثلاً فرض کن policy اولیه $\pi$ شانسی هیچ‌وقت یه اکشن $a$ رو توی یه استیت $s$ امتحان نکنه؛ اون وقت $Q(s,a)$ عملاً unknown می‌مونه. اگر زود policy رو greedy کنی، policy می‌چسبه به اکشن‌هایی که دیده و ممکنه هیچ‌وقت کشف نکنه که اون اکشن امتحان‌نشده بهتر بوده. برای همین، معمولاً کاری می‌کنیم که exploration همیشه یه‌جوری ادامه داشته باشه؛ یا با **exploring starts**، یا با policyهای $\epsilon$-greedy / $\epsilon$-soft که گاهی اکشن‌های غیر-greedy هم می‌زنن.
 
 - **Exploring Starts:** یه فرض تئوریک معروف توی Monte Carlo control اینه که هر episode از یه زوج state-action تصادفی شروع می‌شه. یعنی برای هر $(s,a)$ یه احتمال غیرصفر هست که شروع یه episode بشه. وقتی episode زیاد تولید کنی، این تضمین می‌ده که همه‌ی زوج‌ها بالاخره دیده می‌شن و در نتیجه برای همه‌شون $Q(s,a)$ یه تخمین پیدا می‌کنه. این فرض برای اثبات‌ها خیلی تمیزه، ولی همیشه توی عمل شدنی نیست (چون شاید نتونی environment رو مجبور کنی از هر state-actionی که خواستی شروع کنه).
 
-- **$\epsilon$-Soft Policies:** یه راه عملی‌تر اینه که policy رو $\epsilon$-soft نگه داری. یعنی توی هر state، با احتمال $1-\epsilon$ اکشن greedy (اکشنی که $Q$ رو maximize می‌کنه) رو انتخاب کن، و با احتمال $\epsilon$ یه اکشن تصادفی (مثلاً یکنواخت از بین اکشن‌ها) انتخاب کن. این‌طوری policy همه اکشن‌ها رو بارها و بارها امتحان می‌کنه (یعنی وقتی episodeها ادامه پیدا کنن، معمولاً $N(s,a)\to\infty$) و همزمان کم‌کم bias می‌شه سمت اکشن‌های بهتر. می‌تونی $\epsilon$ رو با زمان کم کنی تا وقتی مطمئن‌تر شدی، exploration کمتر بشه؛ یا خیلی آهسته $\epsilon\to 0$ ببری که در نهایت تقریباً greedy بشی. توی روایت Sutton و Barto، بعد از هر دورِ evaluation، policy رو نسبت به $Q$ به شکل $\epsilon$-greedy می‌کنن تا policy همچنان $\epsilon$-soft بمونه و قبل از همگرایی، کاملاً greedy نشه. در حد episodeهای خیلی زیاد (و اگر $\epsilon$ هم درست schedule بشه)، این روند به policy بهینه نزدیک می‌شه؛ دقیق‌تر: به policy بهینه‌ی $\epsilon$-soft همگرا می‌شه که برای $\epsilon$ کوچک، خیلی نزدیک به optimum واقعی است.
+![1graph](Pictures/4.png)
 
-برای اینکه Monte Carlo control ملموس‌تر بشه، یه task اپیزودیک ساده رو تصور کن (مثلاً یه بازی کارتی مثل **blackjack**). با یه policy ساده شروع می‌کنی (مثلاً «روی ۱۵ stop کن»). با Monte Carlo prediction، action-valueها رو برای هر state (مثلاً hand بازیکن و کارت نمایانِ dealer) تحت همین policy estimate می‌کنی. بعد policy رو بهتر می‌کنی: برای هر hand تصمیم می‌گیری “hit” یا “stick” بسته به اینکه کدوم return تخمینی بالاتری می‌ده. حالا با این policy جدید، episodeهای بیشتری بازی می‌کنی، returnهای جدید جمع می‌کنی، $Q$ رو update می‌کنی، و دوباره policy رو improve می‌کنی. بعد از iteration کافی، این روند به یه strategy خیلی خوب (و در حالت ایده‌آل به strategy بهینه) نزدیک می‌شه. پس Monte Carlo control عملاً همون کاری رو می‌کنه که Dynamic Programming می‌کنه—پیدا کردن policy بهینه—با این تفاوت که اینجا به‌جای اینکه کل state-space رو با یه model معلوم sweep کنی، با تجربه‌ی sample‌شده پیش می‌ری.
+- **$\epsilon$-Soft Policies:** یه راه عملی‌تر اینه که policy رو $\epsilon$-soft نگه داری. یعنی توی هر استیت، با احتمال $1-\epsilon$ اکشن greedy (اکشنی که $Q$ رو maximize می‌کنه) رو انتخاب کن، و با احتمال $\epsilon$ یه اکشن تصادفی (مثلاً یکنواخت از بین اکشن‌ها) انتخاب کن. این‌طوری policy همه اکشن‌ها رو بارها و بارها امتحان می‌کنه (یعنی وقتی episodeها ادامه پیدا کنن، معمولاً $N(s,a)\to\infty$) و همزمان کم‌کم bias می‌شه سمت اکشن‌های بهتر. می‌تونی $\epsilon$ رو با زمان کم کنی تا وقتی مطمئن‌تر شدی، exploration کمتر بشه؛ یا خیلی آهسته $\epsilon\to 0$ ببری که در نهایت تقریباً greedy بشی. توی روایت Sutton و Barto، بعد از هر دورِ evaluation، policy رو نسبت به $Q$ به شکل $\epsilon$-greedy می‌کنن تا policy همچنان $\epsilon$-soft بمونه و قبل از همگرایی، کاملاً greedy نشه. در حد episodeهای خیلی زیاد (و اگر $\epsilon$ هم درست schedule بشه)، این روند به policy بهینه نزدیک می‌شه؛ دقیق‌تر: به policy بهینه‌ی $\epsilon$-soft همگرا می‌شه که برای $\epsilon$ کوچک، خیلی نزدیک به optimum واقعی است.
 
-یه نکته‌ی مهم: Monte Carlo control همون‌طور که گفتیم، برای هر update به episode کامل نیاز داره؛ پس اگر episodeها طولانی باشن یا فضای state خیلی بزرگ باشه، ممکنه کند بشه (چون برای پوشش خوبش episodeهای زیادی لازم داری). از طرف دیگه، اوایل کار تخمین‌های value خیلی noisy هستن و policy improvement زودهنگام ممکنه با شانس گمراه بشه. برای همین معمولاً $\epsilon$-greedy بودن یا اینکه قبل از تغییر policy، تجربه‌ی بیشتری جمع کنی می‌تونه کمک کنه. با این حال، از نظر ایده‌ی اصلی، Monte Carlo control خیلی سرراست می‌مونه: با میانگین‌گیری از returnها evaluate کن، بعد greedy improve کن. این دقیقاً یه نمونه از **model-free policy iteration**ـه که با تجربه‌های sample‌شده جلو می‌ره.
+برای اینکه Monte Carlo control ملموس‌تر بشه، یه task اپیزودیک ساده رو تصور کن (مثلاً یه بازی کارتی مثل **blackjack**). با یه policy ساده شروع می‌کنی (مثلاً «روی ۱۵ stop کن»). با Monte Carlo prediction، action-valueها رو برای هر استیت (مثلاً hand بازیکن و کارت نمایانِ dealer) تحت همین policy estimate می‌کنی. بعد policy رو بهتر می‌کنی: برای هر hand تصمیم می‌گیری “hit” یا “stick” بسته به اینکه کدوم ریترن تخمینی بالاتری می‌ده. حالا با این policy جدید، episodeهای بیشتری بازی می‌کنی، ریترنهای جدید جمع می‌کنی، $Q$ رو update می‌کنی، و دوباره policy رو improve می‌کنی. بعد از iteration کافی، این روند به یه strategy خیلی خوب (و در حالت ایده‌آل به strategy بهینه) نزدیک می‌شه. پس Monte Carlo control عملاً همون کاری رو می‌کنه که Dynamic Programming می‌کنه—پیدا کردن policy بهینه—با این تفاوت که اینجا به‌جای اینکه کل state-space رو با یه model معلوم sweep کنی، با تجربه‌ی سمپل‌شده پیش می‌ری.
+
+یه نکته‌ی مهم: Monte Carlo control همون‌طور که گفتیم، برای هر update به episode کامل نیاز داره؛ پس اگر episodeها طولانی باشن یا فضای state خیلی بزرگ باشه، ممکنه کند بشه (چون برای پوشش خوبش episodeهای زیادی لازم داری). از طرف دیگه، اوایل کار تخمین‌های value خیلی noisy هستن و policy improvement زودهنگام ممکنه با شانس گمراه بشه. برای همین معمولاً $\epsilon$-greedy بودن یا اینکه قبل از تغییر policy، تجربه‌ی بیشتری جمع کنی می‌تونه کمک کنه. با این حال، از نظر ایده‌ی اصلی، Monte Carlo control خیلی سرراست می‌مونه: با میانگین‌گیری از ریترنها evaluate کن، بعد greedy improve کن. این دقیقاً یه نمونه از **model-free policy iteration**ـه که با تجربه‌های سمپل‌شده جلو می‌ره.
+
+
+
+
+
+
 
 
 
@@ -301,22 +314,23 @@ $$
 
 ## First-Visit Monte Carlo در برابر Every-Visit Monte Carlo
 
-وقتی داریم با Monte Carlo، value functionها رو تخمین می‌زنیم، یه تصمیم مهم داریم: اگه یه state توی یه episode چند بار visit شد، با اون چندبار دیدن چی‌کار کنیم؟ همین باعث می‌شه دو تا variant داشته باشیم: **First-Visit Monte Carlo** و **Every-Visit Monte Carlo**. هر دوتاشون معتبرن و وقتی تعداد sampleها خیلی زیاد بشه، به مقدار واقعی همگرا می‌شن؛ ولی فرقشون اینه که دقیقاً چطور از داده‌های هر episode استفاده می‌کنن، و همین فرق می‌تونه روی variance و biasِ تخمین اثر بذاره.
+وقتی داریم با Monte Carlo، value functionها رو تخمین می‌زنیم، یه تصمیم مهم داریم: اگه یه **استیت** توی یه episode چند بار visit شد، با اون چندبار دیدن چی‌کار کنیم؟ همین باعث می‌شه دو تا variant داشته باشیم: **First-Visit Monte Carlo** و **Every-Visit Monte Carlo**. هر دوتاشون معتبرن و وقتی تعداد **سمپل**ها خیلی زیاد بشه، به مقدار واقعی همگرا می‌شن؛ ولی فرقشون اینه که دقیقاً چطور از داده‌های هر episode استفاده می‌کنن، و همین فرق می‌تونه روی variance و biasِ تخمین اثر بذاره.
 
-- **First-Visit Monte Carlo:** توی first-visit MC، فقط از **اولین باری** که یه state توی هر episode دیده می‌شه برای update کردن value اون state استفاده می‌کنیم. یعنی اگه همون state توی همون episode دوباره و دوباره بیاد، دیگه اون دفعه‌های بعدی رو برای update مستقیم حساب نمی‌کنیم. برای هر stateِ $s$، returnِ $G_t$ رو توی اولین باری که $s$ توی episode ظاهر شده می‌گیریم و می‌ذاریم توی running average برای $V(s)$. پس اگه یه episode چندبار به $s$ سر بزنه، فقط همون visitِ اول (زودترینش) توی update نقش داره. در طول episodeهای زیاد، یه مجموعه از returnها از first-visitهای مستقلِ $s$ جمع می‌کنیم.
+![1graph](Pictures/5.png)
 
-**چراییِ کار:** ایده اینه که returnهایی که از first visit می‌گیریم رو می‌شه مثل sampleهایی از random variableِ «return از $s$ تحتِ $\pi$» دید. وقتی visitهای بعدیِ همون episode رو کنار می‌ذاریم، کمتر درگیر sampleهای correlated می‌شیم. برای همین first-visit MC یه estimatorِ بدونِ bias از $V^\pi(s)$ می‌ده. downsideش اینه که یه مقدار data رو دور می‌ریزیم (returnهای visit دوم، سوم، …)، و این می‌تونه باعث بشه یادگیری کندتر پیش بره چون عملاً sample کمتری مصرف می‌کنیم.
+- **First-Visit Monte Carlo:** توی first-visit MC، فقط از **اولین باری** که یه **استیت** توی هر episode دیده می‌شه برای update کردن value اون **استیت** استفاده می‌کنیم. یعنی اگه همون **استیت** توی همون episode دوباره و دوباره بیاد، دیگه اون دفعه‌های بعدی رو برای update مستقیم حساب نمی‌کنیم. برای هر **استیت**ِ $s$، **ریترن**ِ $G_t$ رو توی اولین باری که $s$ توی episode ظاهر شده می‌گیریم و می‌ذاریم توی running average برای $V(s)$. پس اگه یه episode چندبار به $s$ سر بزنه، فقط همون visitِ اول (زودترینش) توی update نقش داره. در طول episodeهای زیاد، یه مجموعه از **ریترن**ها از first-visitهای مستقلِ $s$ جمع می‌کنیم.
 
-- **Every-Visit Monte Carlo:** توی every-visit MC، از **هر بار** که یه state توی یه episode میاد برای update value استفاده می‌کنیم. یعنی اگه یه stateِ $s$ توی یه episode سه بار توی زمان‌های $t_1,t_2,t_3$ دیده بشه، ما سه تا return داریم: $G_{t_1},G_{t_2},G_{t_3}$ و هر سه‌تاش رو می‌بریم توی فرآیندِ average برای $V(s)$. توی عمل یعنی برای هر time stepِ $t$ توی یه episode، stateِ $s_t$ و returnِ $G_t$ رو داریم و $G_t$ رو به لیستِ returnهای مربوط به $s_t$ اضافه می‌کنیم. بعد $V(s_t)$ به سمت meanِ همون لیستِ بزرگ‌شده update می‌شه.
+**چراییِ کار:** ایده اینه که **ریترن**هایی که از first visit می‌گیریم رو می‌شه مثل **سمپل**هایی از random variableِ «**ریترن** از $s$ تحتِ $\pi$» دید. وقتی visitهای بعدیِ همون episode رو کنار می‌ذاریم، کمتر درگیر **سمپل**های correlated می‌شیم. برای همین first-visit MC یه estimatorِ بدونِ bias از $V^\pi(s)$ می‌ده. downsideش اینه که یه مقدار data رو دور می‌ریزیم (**ریترن**های visit دوم، سوم، …)، و این می‌تونه باعث بشه یادگیری کندتر پیش بره چون عملاً **سمپل** کمتری مصرف می‌کنیم.
 
-**چراییِ کار:** every-visit MC از کل data موجود درباره‌ی returnهای یه state استفاده می‌کنه، و این معمولاً از نظر آماری کاراتر می‌شه (چون توی هر episode می‌تونی sample بیشتری جمع کنی). مخصوصاً وقتی episodeها طولانی‌ان و بعضی stateها زیاد revisit می‌شن، every-visit می‌تونه از همون یه episode چندتا sample از return برای اون stateها جمع کنه و varianceِ تخمین رو پایین بیاره. ولی نکته اینه که این چندتا sample توی همون episode مستقل نیستن — correlated هستن چون از یه trajectory مشترک میان. برای همین، estimatorِ every-visit MC توی $N$ محدود می‌تونه یه bias کوچیک داشته باشه. شهودی‌اش اینه که وقتی یه state توی یه episode دوباره میاد، returnهای اون visitهای بعدی دیگه «draw مستقل» از این نیستن که از اون state چه اتفاقایی ممکنه بیفته (مثلاً returnِ visitِ دیرتر کوتاه‌تره چون بخش اول episode رو دیگه نداره، و خودِ این‌که برگشتیم به همون state هم اطلاعاتی درباره trajectory می‌ده). با این حال وقتی $N\to\infty$، every-visit MC باز هم به value درست همگرا می‌شه (bias به‌صورت asymptotic از بین می‌ره، یعنی estimator consistent هست).
+- **Every-Visit Monte Carlo:** توی every-visit MC، از **هر بار** که یه **استیت** توی یه episode میاد برای update value استفاده می‌کنیم. یعنی اگه یه **استیت**ِ $s$ توی یه episode سه بار توی زمان‌های $t_1,t_2,t_3$ دیده بشه، ما سه تا **ریترن** داریم: $G_{t_1},G_{t_2},G_{t_3}$ و هر سه‌تاش رو می‌بریم توی فرآیندِ average برای $V(s)$. توی عمل یعنی برای هر time stepِ $t$ توی یه episode، **استیت**ِ $s_t$ و **ریترن**ِ $G_t$ رو داریم و $G_t$ رو به لیستِ **ریترن**های مربوط به $s_t$ اضافه می‌کنیم. بعد $V(s_t)$ به سمت meanِ همون لیستِ بزرگ‌شده update می‌شه.
 
-**مقایسه:** هم first-visit و هم every-visit MC با episode کافی به $V^\pi$ همگرا می‌شن. انتخاب بینشون، وقتی تعداد sample هنوز محدوده، روی trade-off بین variance و bias اثر می‌ذاره. first-visit MC از همون اول بدونِ biasه چون هر returnی که استفاده می‌کنه (در سطح episodeها) مثل یه draw از $G|s$ در نظر گرفته می‌شه. ولی ممکنه variance بیشتری داشته باشه و کندتر یاد بگیره چون برای هر state توی هر episode فقط یه update می‌زنه. در عوض every-visit MC از هر episode data بیشتری بیرون می‌کشه و معمولاً باعث می‌شه توی شروع، variance کمتر بشه (به‌جای یه return، چندتا returnِ correlated رو average می‌کنی). برای همین، mean-squared error اولیه‌ی every-visit می‌تونه کمتر باشه و توی فازهای اول سریع‌تر به value واقعی نزدیک بشه. ولی چون sampleها correlated هستن، یه bias کوچیک هم همراهشه تا وقتی episodeها زیاد بشن.
+**چراییِ کار:** every-visit MC از کل data موجود درباره‌ی **ریترن**های یه **استیت** استفاده می‌کنه، و این معمولاً از نظر آماری کاراتر می‌شه (چون توی هر episode می‌تونی **سمپل** بیشتری جمع کنی). مخصوصاً وقتی episodeها طولانی‌ان و بعضی **استیت**ها زیاد revisit می‌شن، every-visit می‌تونه از همون یه episode چندتا **سمپل** از **ریترن** برای اون **استیت**ها جمع کنه و varianceِ تخمین رو پایین بیاره. ولی نکته اینه که این چندتا **سمپل** توی همون episode مستقل نیستن — correlated هستن چون از یه trajectory مشترک میان. برای همین، estimatorِ every-visit MC توی $N$ محدود می‌تونه یه bias کوچیک داشته باشه. شهودی‌اش اینه که وقتی یه **استیت** توی یه episode دوباره میاد، **ریترن**های اون visitهای بعدی دیگه «draw مستقل» از این نیستن که از اون **استیت** چه اتفاقایی ممکنه بیفته (مثلاً **ریترن**ِ visitِ دیرتر کوتاه‌تره چون بخش اول episode رو دیگه نداره، و خودِ این‌که برگشتیم به همون **استیت** هم اطلاعاتی درباره trajectory می‌ده). با این حال وقتی $N\to\infty$، every-visit MC باز هم به value درست همگرا می‌شه (bias به‌صورت asymptotic از بین می‌ره، یعنی estimator consistent هست).
+
+**مقایسه:** هم first-visit و هم every-visit MC با episode کافی به $V^\pi$ همگرا می‌شن. انتخاب بینشون، وقتی تعداد **سمپل** هنوز محدوده، روی trade-off بین variance و bias اثر می‌ذاره. first-visit MC از همون اول بدونِ biasه چون هر **ریترن**ی که استفاده می‌کنه (در سطح episodeها) مثل یه draw از $G|s$ در نظر گرفته می‌شه. ولی ممکنه variance بیشتری داشته باشه و کندتر یاد بگیره چون برای هر **استیت** توی هر episode فقط یه update می‌زنه. در عوض every-visit MC از هر episode data بیشتری بیرون می‌کشه و معمولاً باعث می‌شه توی شروع، variance کمتر بشه (به‌جای یه **ریترن**، چندتا **ریترن**ِ correlated رو average می‌کنی). برای همین، mean-squared error اولیه‌ی every-visit می‌تونه کمتر باشه و توی فازهای اول سریع‌تر به value واقعی نزدیک بشه. ولی چون **سمپل**ها correlated هستن، یه bias کوچیک هم همراهشه تا وقتی episodeها زیاد بشن.
 
 جالبه که تحلیل‌های تئوریک (Singh & Sutton, 1996) نشون می‌دن اولِ کار every-visit MC می‌تونه mean-squared error پایین‌تری بده، ولی وقتی تعداد episodeها خیلی بزرگ می‌شه، first-visit MC در نهایت جلو می‌زنه و در بلندمدت MSE پایین‌تری می‌گیره. توی عمل، این تفاوت خیلی وقت‌ها خیلی بزرگ نیست و چون every-visit از data بهتر استفاده می‌کنه، برای پیاده‌سازی‌های Monte Carlo در RL معمولاً انتخاب محبوب‌تریه.
 
-برای این‌که فرقش واضح‌تر بشه، این مثال رو در نظر بگیر: یه episode stateِ $s$ رو سه بار visit می‌کنه و در نهایت return (از اولین بارِ $s$) می‌شه 5، بعد return از occurrence دومِ $s$ (که دیرتره) می‌شه 3، و از سومی می‌شه 2 (چون بعد از visitهای دیرتر، بخش کمتری از episode مونده). first-visit MC فقط همون 5 رو از اون episode برای $s$ برمی‌داره. every-visit MC هر سه مقدار 5 و 3 و 2 رو توی average استفاده می‌کنه. sampleِ روش first-visit (یعنی 5) یه draw بدونِ bias از distribution واقعیِ returnها از $s$ حساب می‌شه. sampleهای روش every-visit (یعنی 5، 3، 2) به‌خاطر همون correlation و این‌که returnِ دیرتر ذاتاً کوتاه‌تره، می‌تونن یه bias کوچیک ایجاد کنن—ولی وقتی episode زیاد بشه، این اثرها معمولاً با هم balance می‌شن. از نظر تجربی هم استفاده از همه‌ی visitها خیلی وقت‌ها یادگیری رو سریع‌تر می‌کنه چون info این‌که «از $s$ توی زمان‌های دیرتر، return کمتر شده» رو دور نمی‌ریزیم (مثلاً چون به termination نزدیک بودیم).
-
+برای این‌که فرقش واضح‌تر بشه، این مثال رو در نظر بگیر: یه episode **استیت**ِ $s$ رو سه بار visit می‌کنه و در نهایت **ریترن** (از اولین بارِ $s$) می‌شه 5، بعد **ریترن** از occurrence دومِ $s$ (که دیرتره) می‌شه 3، و از سومی می‌شه 2 (چون بعد از visitهای دیرتر، بخش کمتری از episode مونده). first-visit MC فقط همون 5 رو از اون episode برای $s$ برمی‌داره. every-visit MC هر سه مقدار 5 و 3 و 2 رو توی average استفاده می‌کنه. **سمپل**ِ روش first-visit (یعنی 5) یه draw بدونِ bias از distribution واقعیِ **ریترن**ها از $s$ حساب می‌شه. **سمپل**های روش every-visit (یعنی 5، 3، 2) به‌خاطر همون correlation و این‌که **ریترن**ِ دیرتر ذاتاً کوتاه‌تره، می‌تونن یه bias کوچیک ایجاد کنن—ولی وقتی episode زیاد بشه، این اثرها معمولاً با هم balance می‌شن. از نظر تجربی هم استفاده از همه‌ی visitها خیلی وقت‌ها یادگیری رو سریع‌تر می‌کنه چون info این‌که «از $s$ توی زمان‌های دیرتر، **ریترن** کمتر شده» رو دور نمی‌ریزیم (مثلاً چون به termination نزدیک بودیم).
 
 
 
@@ -330,21 +344,21 @@ $$
 
 ### Incremental Monte Carlo Updates
 
-تا اینجا Monte Carlo estimation رو جوری گفتیم که انگار یه batch از returnها رو جمع می‌کنی و آخرش میانگین می‌گیری. مثلاً بعد از این‌که stateِ $s$ رو $N(s)$ بار visit کردی، می‌گفتیم:
+تا اینجا Monte Carlo estimation رو جوری گفتیم که انگار یه batch از ریترن‌ها رو جمع می‌کنی و آخرش میانگین می‌گیری. مثلاً بعد از این‌که استیتِ $s$ رو $N(s)$ بار visit کردی، می‌گفتیم:
 $$
-V^\pi(s)=\frac{1}{N(s)}\sum_{i=1}^{N(s)}G_i.
+V^\pi(s)=\frac{1}{N(s)}\sum_{i=1}^{N(s)} G_i.
 $$
-ولی توی عمل معمولاً خیلی راحت‌تره (و از نظر حافظه هم خیلی بهینه‌تره) که value estimateها رو incremental آپدیت کنیم؛ یعنی هر وقت یه return جدید دیدیم، همون لحظه آپدیتش کنیم، نه این‌که همه‌ی returnها رو ذخیره کنیم.
+ولی توی عمل معمولاً خیلی راحت‌تره (و از نظر حافظه هم خیلی بهینه‌تره) که value estimateها رو incremental آپدیت کنیم؛ یعنی هر وقت یه ریترن جدید دیدیم، همون لحظه آپدیتش کنیم، نه این‌که همه‌ی ریترن‌ها رو ذخیره کنیم.
 
 Monte Carlo methodها رو می‌شه آنلاین (online) و با یه فرمول running average خیلی تمیز پیاده‌سازی کرد.
 
-ایده‌ی کلی اینه: وقتی یه sample جدید $G$ به دستت می‌رسه، میانگین جدید رو می‌تونی این‌طوری آپدیت کنی:
+ایده‌ی کلی اینه: وقتی یه سمپل جدید $G$ به دستت می‌رسه، میانگین جدید رو می‌تونی این‌طوری آپدیت کنی:
 $$
 \text{new\_avg}=\text{old\_avg}+\frac{1}{n}\bigl(\text{sample}-\text{old\_avg}\bigr),
 $$
-که اینجا $n$ تعداد کل جدیدِ sampleهاست. یعنی بدون این‌که دوباره بری همه‌ی sampleهای قبلی رو جمع بزنی، همون میانگین رو تو یه قدم آپدیت می‌کنی. دقیقاً همین رو می‌تونیم برای Monte Carlo value estimation استفاده کنیم.
+که اینجا $n$ تعداد کل جدیدِ سمپل‌هاست. یعنی بدون این‌که دوباره بری همه‌ی سمپل‌های قبلی رو جمع بزنی، همون میانگین رو تو یه قدم آپدیت می‌کنی. دقیقاً همین رو می‌تونیم برای Monte Carlo value estimation استفاده کنیم.
 
-فرض کن تا قبل از الان، $N(s)-1$ بار $s$ رو visit کردیم و estimateمون $V(s)$ بوده (که همون averageِ returnهای قبلیه). حالا یه visit دیگه از $s$ داریم و یه return جدید $G$ می‌بینیم؛ این می‌شه sampleِ شماره‌ی $N(s)$. value جدید یعنی $V_{\text{new}}(s)$ باید averageِ همه‌ی $N(s)$ تا return باشه. از نظر ریاضی:
+فرض کن تا قبل از الان، $N(s)-1$ بار $s$ رو visit کردیم و estimateمون $V(s)$ بوده (که همون averageِ ریترن‌های قبلیه). حالا یه visit دیگه از $s$ داریم و یه ریترن جدید $G$ می‌بینیم؛ این می‌شه سمپلِ شماره‌ی $N(s)$. value جدید یعنی $V_{\text{new}}(s)$ باید averageِ همه‌ی $N(s)$ تا ریترن باشه. از نظر ریاضی:
 $$
 V_{\text{new}}(s)=\frac{(N(s)-1)V_{\text{old}}(s)+G}{N(s)}.
 $$
@@ -352,12 +366,12 @@ $$
 $$
 V_{\text{new}}(s)=V_{\text{old}}(s)+\frac{1}{N(s)}\bigl[\,G-V_{\text{old}}(s)\,\bigr].
 $$
-این همون incremental update برای Monte Carlo policy evaluation ـه. معنی‌اش اینه که estimate قبلی رو با خطاش نسبت به target یعنی $G-V_{\text{old}}(s)$ اصلاح می‌کنیم، ولی با ضریب $1/N(s)$. اوایل که $N(s)$ کوچیکه، آپدیت‌ها بزرگ‌ترن و سریع‌تر یاد می‌گیریم؛ هر چی $N(s)$ بیشتر می‌شه، step size یعنی $1/N(s)$ کوچیک‌تر می‌شه و value estimate آروم‌تر تغییر می‌کنه (چون خب داده‌ی بیشتری دیده و اعتمادمون بهش بیشتره). قشنگی‌اش هم اینه که دقیقاً معادل batch average هست، ولی برای implementation خیلی راحت‌تره: نه لازم داری returnهای قدیمی رو ذخیره کنی، نه لازم داری صبر کنی یه batch بزرگ از episodeها جمع بشه. هر وقت یه return جدید برای $s$ داشتی می‌تونی $V(s)$ رو همون لحظه آپدیت کنی (برای Monte Carlo یعنی معمولاً آخر هر episode، یا برای first visit هر state داخل یه episode).
+این همون incremental update برای Monte Carlo policy evaluation ـه. معنی‌اش اینه که estimate قبلی رو با خطاش نسبت به target یعنی $G-V_{\text{old}}(s)$ اصلاح می‌کنیم، ولی با ضریب $1/N(s)$. اوایل که $N(s)$ کوچیکه، آپدیت‌ها بزرگ‌ترن و سریع‌تر یاد می‌گیریم؛ هر چی $N(s)$ بیشتر می‌شه، step size یعنی $1/N(s)$ کوچیک‌تر می‌شه و value estimate آروم‌تر تغییر می‌کنه (چون خب داده‌ی بیشتری دیده و اعتمادمون بهش بیشتره). قشنگی‌اش هم اینه که دقیقاً معادل batch average هست، ولی برای implementation خیلی راحت‌تره: نه لازم داری ریترن‌های قدیمی رو ذخیره کنی، نه لازم داری صبر کنی یه batch بزرگ از episodeها جمع بشه. هر وقت یه ریترن جدید برای $s$ داشتی می‌تونی $V(s)$ رو همون لحظه آپدیت کنی (برای Monte Carlo یعنی معمولاً آخر هر episode، یا برای first visit هر استیت داخل یه episode).
 
 **چرا incremental update خوبه؟**
-- **Memory Efficiency:** دیگه لازم نیست برای هر state یه لیست بلندبالا از returnها نگه داری. فقط $V(s)$ و count یعنی $N(s)$ رو نگه می‌داری (حتی $N(s)$ رو هم می‌شه با روش‌های دیگه مدیریت کرد). این وقتی state space بزرگه خیلی مهمه.
-- **Online (Real-Time) Learning:** توی خیلی از taskها یا simulationها دوست داری valueها همون‌طور که جلو می‌ری آپدیت بشن، نه این‌که بعداً بشینی batch درست کنی. Incremental Monte Carlo اجازه می‌ده بعد از هر episode (یا بعد از هر visit مرتبطِ state) آپدیت انجام بشه. این مخصوصاً وقتی خوبه که یه ایجنت رو deploy کردی و می‌خوای حین کار هم یاد بگیره.
-- **Smooth Convergence:** این running average خودش step size رو به مرور کم می‌کنه ($1/N(s)$) و معمولاً باعث convergence تمیز و پایدار می‌شه. اول کار که اطلاعات کمه، returnهای جدید estimate رو حسابی جابه‌جا می‌کنن؛ بعدتر که sample زیاد می‌شه، هر return جدید فقط یه تکون کوچیک می‌ده. عملاً یه جور learning rate schedule طبیعی می‌شه.
+- **Memory Efficiency:** دیگه لازم نیست برای هر استیت یه لیست بلندبالا از ریترن‌ها نگه داری. فقط $V(s)$ و count یعنی $N(s)$ رو نگه می‌داری (حتی $N(s)$ رو هم می‌شه با روش‌های دیگه مدیریت کرد). این وقتی spaceِ استیت‌ها بزرگه خیلی مهمه.
+- **Online (Real-Time) Learning:** توی خیلی از taskها یا simulationها دوست داری valueها همون‌طور که جلو می‌ری آپدیت بشن، نه این‌که بعداً بشینی batch درست کنی. Incremental Monte Carlo اجازه می‌ده بعد از هر episode (یا بعد از هر visit مرتبطِ استیت) آپدیت انجام بشه. این مخصوصاً وقتی خوبه که یه ایجنت رو deploy کردی و می‌خوای حین کار هم یاد بگیره.
+- **Smooth Convergence:** این running average خودش step size رو به مرور کم می‌کنه ($1/N(s)$) و معمولاً باعث convergence تمیز و پایدار می‌شه. اول کار که اطلاعات کمه، ریترن‌های جدید estimate رو حسابی جابه‌جا می‌کنن؛ بعدتر که سمپل زیاد می‌شه، هر ریترن جدید فقط یه تکون کوچیک می‌ده. عملاً یه جور learning rate schedule طبیعی می‌شه.
 
 بد نیست اشاره کنیم که این فرمول incremental:
 $$
@@ -365,13 +379,13 @@ V(s)\leftarrow V(s)+\frac{1}{N(s)}\bigl(G-V(s)\bigr)
 $$
 در اصل یه حالت خاص از stochastic gradient descent update هم هست (و حتی خیلی شبیه TD(0) update به نظر میاد، اگه $G$ رو به‌عنوان “target” در نظر بگیری). این ایده قابل تعمیمه: بعضی وقت‌ها به‌جای $1/N(s)$ از یه step-size ثابت $\alpha$ استفاده می‌کنن تا توی environmentهای non-stationary هم هنوز سیستم انعطاف داشته باشه یا به تجربه‌های جدیدتر وزن بیشتری بده. برای Monte Carlo evaluation خالص، وقتی policy ثابته و environment هم stationary ـه، $\alpha=1/N(s)$ همون average دقیق و طبیعی رو می‌ده. ولی اگه process non-stationary باشه (مثلاً policy هی عوض بشه یا dynamics محیط تغییر کنه)، معمولاً از یه exponential moving average با $\alpha$ ثابت (مثلاً $\alpha=0.01$) استفاده می‌کنن تا تغییرات رو بهتر track کنه.
 
-در کل، Incremental Monte Carlo updating یعنی منتظر نمی‌مونی یه عالمه return جمع شه؛ هر بار که یه sample return جدید می‌بینی، همون لحظه value رو آپدیت می‌کنی. قانون آپدیت هم اینه:
+در کل، Incremental Monte Carlo updating یعنی منتظر نمی‌مونی یه عالمه ریترن جمع شه؛ هر بار که یه سمپل ریترن جدید می‌بینی، همون لحظه value رو آپدیت می‌کنی. قانون آپدیت هم اینه:
 $$
 V^\pi(s)\leftarrow V^\pi(s)+\frac{1}{N(s)}\bigl(G-V^\pi(s)\bigr)
 $$
-و این رو می‌تونی هم برای first-visit MC (یعنی بعد از first visit هر episode به $s$ آپدیت کنی) استفاده کنی، هم برای every-visit MC (یعنی روی هر visit آپدیت انجام بدی؛ اون‌وقت $N(s)$ همه‌ی occurrenceها رو می‌شمره). نتیجه‌ی نهایی هم همونه: همون average از همه‌ی returnها، فقط با یه implementation خیلی راحت‌تر و آنلاین‌تر.
+و این رو می‌تونی هم برای first-visit MC (یعنی بعد از first visit هر episode به $s$ آپدیت کنی) استفاده کنی، هم برای every-visit MC (یعنی روی هر visit آپدیت انجام بدی؛ اون‌وقت $N(s)$ همه‌ی occurrenceها رو می‌شمره). نتیجه‌ی نهایی هم همونه: همون average از همه‌ی ریترن‌ها، فقط با یه implementation خیلی راحت‌تر و آنلاین‌تر.
 
-هر return جدید، value رو به سمت sample هل می‌ده، با یه step size که کم‌کم کوچیک‌تر می‌شه. با این ابزار، عملاً Monte Carlo toolkit کامل‌تر می‌شه: episode تولید می‌کنی، first-visit یا every-visit averaging رو انتخاب می‌کنی، و value estimateها رو incremental آپدیت می‌کنی. با این تکنیک‌ها، Monte Carlo methodها می‌تونن value functionها و policyهای optimal رو از experience خام یاد بگیرن، بدون این‌که هیچ model از environment داشته باشن—به شرط این‌که exploration کافی باشه و تعداد episode کافی ببینی.
+هر ریترن جدید، value رو به سمت سمپل هل می‌ده، با یه step size که کم‌کم کوچیک‌تر می‌شه. با این ابزار، عملاً Monte Carlo toolkit کامل‌تر می‌شه: episode تولید می‌کنی، first-visit یا every-visit averaging رو انتخاب می‌کنی، و value estimateها رو incremental آپدیت می‌کنی. با این تکنیک‌ها، Monte Carlo methodها می‌تونن value functionها و policyهای optimal رو از experience خام یاد بگیرن، بدون این‌که هیچ model از environment داشته باشن—به شرط این‌که exploration کافی باشه و تعداد episode کافی ببینی.
 
 
 
