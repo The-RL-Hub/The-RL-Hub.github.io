@@ -193,7 +193,7 @@ $$
 
 
 
-### 3.3. Monte Carlo Prediction
+### Monte Carlo Prediction
 
 توی reinforcement learning، وقتی می‌گیم یه مسئله‌ی prediction، معمولاً منظورمون اینه که value function رو برای یه policy مشخصِ $\pi$ ارزیابی کنیم. ایده‌ی Monte Carlo prediction اینه که $V^\pi(s)$ (یا $Q^\pi(s,a)$) رو با استفاده از سمپل ریترنها از تعداد زیادی episode که توشون policy $\pi$ رو دنبال می‌کنیم، تخمین بزنیم.
 
