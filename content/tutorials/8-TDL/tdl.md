@@ -468,3 +468,199 @@ $$
 | TD | sample backup | real experience |
 
 برای همینه که TD توی RL این‌قدر central است. TD ایده‌ی Bellman bootstrapping رو از DP نگه می‌داره، اما این requirement رو که model رو بشناسیم حذف می‌کنه.
+
+
+
+
+
+
+
+
+
+## شهود Backup Diagram
+
+دیدن backupها به شکل تصویری خیلی کمک می‌کنه.
+
+برای Monte Carlo، یه state با استفاده از کل trajectory آینده update می‌شه:
+
+```text
+S_t → R_{t+1} → S_{t+1} → R_{t+2} → S_{t+2} → ... → terminal
+```
+
+target همون full return هست:
+
+$$
+G_t.
+$$
+
+برای TD(0)، یه state فقط با استفاده از reward بعدی و value بعدی update می‌شه:
+
+```text
+S_t → R_{t+1} → S_{t+1}
+```
+
+target اینه:
+
+$$
+R_{t+1}+\gamma V(S_{t+1}).
+$$
+
+TD(0) فقط یه step جلوتر رو نگاه می‌کنه. Monte Carlo تا آخر مسیر رو نگاه می‌کنه.
+
+بعداً، n-step methodها فضای بین این دو رو پر می‌کنن:
+
+$$
+G_t^{(n)} = R_{t+1} + \gamma R_{t+2} + \cdots + \gamma^{n-1}R_{t+n} + \gamma^n V(S_{t+n}).
+$$
+
+- اگه $n=1$ باشه، این همون TD(0) می‌شه.
+- اگه $n$ تا آخر episode ادامه پیدا کنه، این تبدیل می‌شه به Monte Carlo.
+
+پس TD و MC دو دنیای کاملاً جدا از هم نیستن. این‌ها دو سر یه خانواده بزرگ‌تر از return-based methodها هستن.
+
+---
+
+## یه مثال کلاسیک: Random Walk
+
+یه مثال استاندارد برای فهم TD prediction، یه random walk کوچیکه.
+
+فرض کن پنج تا state غیر-terminal داریم:
+
+$$
+A, B, C, D, E
+$$
+
+یه terminal state سمت چپ داریم و یه terminal state سمت راست:
+
+```text
+terminal چپ — A — B — C — D — E — terminal راست
+```
+
+ایجنت از state وسط، یعنی $C$، شروع می‌کنه. تو هر step، با احتمال برابر یا به چپ می‌ره یا به راست.
+
+ریواردها:
+
+- رسیدن به terminal چپ ریوارد $0$ می‌ده
+- رسیدن به terminal راست ریوارد $1$ می‌ده
+- همه transitionهای دیگه ریوارد $0$ می‌دن
+
+فرض کن $\gamma=1$.
+
+valueهای واقعی، همون احتمال‌های در نهایت رسیدن به terminal راست از هر state هستن. چون random walk متقارنه:
+
+$$
+V^*(A)=\frac{1}{6}, \quad
+V^*(B)=\frac{2}{6}, \quad
+V^*(C)=\frac{3}{6}, \quad
+V^*(D)=\frac{4}{6}, \quad
+V^*(E)=\frac{5}{6}.
+$$
+
+حالا فرض کن همه stateهای غیر-terminal رو با $0.5$ initialize می‌کنیم:
+
+$$
+V(A)=V(B)=V(C)=V(D)=V(E)=0.5.
+$$
+
+چرا $0.5$؟ چون قبل از دیدن data، ممکنه حدس بزنیم هر state یه شانس پنجاه-پنجاه داره که آخرش به سمت راست ختم بشه.
+
+### Monte Carlo چی کار می‌کنه
+
+Monte Carlo صبر می‌کنه تا یه episode تموم بشه. اگه episode به terminal راست برسه، return برای همه stateهای بازدیدشده 1 می‌شه. اگه به terminal چپ برسه، return برابر 0 می‌شه.
+
+پس هر stateای که تو episode دیده شده، به سمت outcome نهایی هل داده می‌شه.
+
+این می‌تونه noisy باشه. مثلاً state $A$ نزدیک terminal چپه، پس value واقعی‌اش پایینه. ولی هنوز ممکنه یه episode که از $A$ رد شده، آخرش همه راه رو به سمت راست بره و ریوارد 1 بگیره. اون‌وقت Monte Carlo مقدار $V(A)$ رو بر اساس اون outcome کامل به سمت بالا هل می‌ده.
+
+### TD چی کار می‌کنه
+
+TD هر بار یه step update می‌کنه. اگه ایجنت با ریوارد 0 از $A$ به $B$ حرکت کنه، TD این update رو انجام می‌ده:
+
+$$
+V(A) \leftarrow V(A) + \alpha [0 + V(B) - V(A)].
+$$
+
+پس $A$ به سمت value مربوط به $B$ هل داده می‌شه.
+
+اگه ایجنت از $A$ به terminal چپ بره، TD این update رو انجام می‌ده:
+
+$$
+V(A) \leftarrow V(A) + \alpha [0 - V(A)].
+$$
+
+پس $A$ به سمت پایین هل داده می‌شه.
+
+بعد از episodeهای زیاد، valueها کم‌کم خودشون رو به شکل یه gradient نرم از چپ به راست مرتب می‌کنن. TD اطلاعات ریوارد رو به صورت local و از طریق stateهای همسایه پخش می‌کنه.
+
+این مثال نشون می‌ده چرا TD می‌تونه efficient یاد بگیره. لازم نیست برای هر state منتظر کلی return کامل بمونه. TD از ساختار transitionها استفاده می‌کنه تا value information رو propagate کنه.
+
+---
+
+## چرا TD می‌تونه از Predictionها یاد بگیره
+
+یکی از جالب‌ترین بخش‌های TD اینه که از تغییرات predictionها یاد می‌گیره.
+
+فرض کن دیروز predictionت این بود که تیمت 40% شانس بردن یه tournament رو داره. امروز بهترین بازیکنشون از injury برگشته، و حالا predictionت شده 60%. خود tournament هنوز برگزار نشده، ولی predictionت به شکل معناداری تغییر کرده.
+
+همین تغییر خودش information داره.
+
+TD دقیقاً از همین نوع signal استفاده می‌کنه. اگه state بعدی value بالاتری از چیزی که انتظار داشتیم داشته باشه، اون‌وقت state قبلی هم باید ارزشمندتر بشه. اگه state بعدی value پایین‌تری داشته باشه، state قبلی باید کم‌ارزش‌تر بشه.
+
+TD error شکل عددی همین ایده است:
+
+$$
+\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t).
+$$
+
+این دو تا prediction پشت‌سرهم رو با هم مقایسه می‌کنه، البته با در نظر گرفتن ریواردی که بینشون گرفته شده.
+
+اگه immediate reward وجود نداشته باشه، TD error خیلی ساده می‌شه:
+
+$$
+\delta_t = \gamma V(S_{t+1}) - V(S_t).
+$$
+
+پس state قبلی به سمت discounted value مربوط به state بعدی update می‌شه.
+
+اگه immediate reward وجود داشته باشه، اون ریوارد به next-state value اضافه می‌شه.
+
+برای همین به TD learning می‌گن **temporal-difference** learning: چون از difference بین predictionها در زمان‌های مختلف یاد می‌گیره.
+
+---
+
+## Handling Terminal States
+
+terminal stateها نیاز به توجه ویژه دارن، چون تو implementationها زیاد باعث bug می‌شن.
+
+اگه $S_{t+1}$ terminal باشه، بعد از اون دیگه هیچ future returnای وجود نداره. بنابراین:
+
+$$
+V(S_{t+1}) = 0.
+$$
+
+TD target تبدیل می‌شه به:
+
+$$
+R_{t+1}.
+$$
+
+پس terminal transition update اینه:
+
+$$
+V(S_t) \leftarrow V(S_t) + \alpha [R_{t+1} - V(S_t)].
+$$
+
+این دقیقاً شبیه یه supervised update به سمت final reward هست.
+
+یه implementation pattern رایج اینه:
+
+```python
+if done:
+    target = reward
+else:
+    target = reward + gamma * V[next_state]
+
+V[state] += alpha * (target - V[state])
+```
+
+حواست باشه اشتباهی از یه stored value برای terminal state استفاده نکنی، مگر اینکه خودت explicit اون رو روی zero گذاشته باشی.
