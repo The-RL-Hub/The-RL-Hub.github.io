@@ -19,6 +19,9 @@
 | Monte Carlo | نه | بله | نه |
 | Temporal-Difference Learning | نه | نه | بله |
 
+
+![Comparison of Dynamic Programming, Monte Carlo, and Temporal-Difference learning](Pictures/1.png)
+
 **Temporal-Difference learning**، یا **TD learning**، دقیقاً وسط این دو تا قرار می‌گیره. TD مثل Monte Carlo از experience واقعی یاد می‌گیره، پس model لازم نداره. ولی مثل Dynamic Programming بعد از هر step آپدیت می‌کنه، پس لازم نیست تا آخر episode صبر کنه.
 
 این یه جمله، قلب TDـه:
