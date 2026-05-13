@@ -84,6 +84,8 @@ TD می‌پرسه: می‌تونیم قبل از اینکه full return رو ب
 
 ## The Key Observation: Returns Are Recursive
 
+![Recursive structure of the return and the TD target](Pictures/2.png)
+
 به return نگاه کن:
 
 $$
@@ -370,3 +372,99 @@ $$
 حالا ریوارد کم‌کم شروع کرده از terminal state به عقب propagate شدن؛ اول به $B$ رسیده و بعد از $B$ به $A$.
 
 داستان اصلی TD همینه: اطلاعات ریوارد از طریق value estimateها، هر بار یه transition، به عقب حرکت می‌کنه.
+
+
+
+
+
+
+
+
+
+
+## TD در مقابل Monte Carlo
+
+Monte Carlo و TD هر دو از experience یاد می‌گیرن، اما targetهایی که استفاده می‌کنن با هم فرق داره.
+
+update در Monte Carlo:
+
+$$
+V(S_t) \leftarrow V(S_t) + \alpha [G_t - V(S_t)].
+$$
+
+update در TD:
+
+$$
+V(S_t) \leftarrow V(S_t) + \alpha [R_{t+1} + \gamma V(S_{t+1}) - V(S_t)].
+$$
+
+فرق اصلی توی target است:
+
+| Method | Target | کی می‌تونه update کنه؟ |
+|---|---|---|
+| Monte Carlo | $G_t$ | بعد از اینکه episode تموم شد |
+| TD(0) | $R_{t+1}+\gamma V(S_{t+1})$ | بعد از یه step |
+
+Monte Carlo از یه sampled return واقعی استفاده می‌کنه. TD از یه bootstrapped estimate از return استفاده می‌کنه.
+
+### مزیت‌های TD نسبت به Monte Carlo
+
+**1. TD می‌تونه قبل از تموم شدن episode یاد بگیره.**
+
+این توی episodeهای طولانی خیلی مهمه. TD بلافاصله بعد از هر transition update می‌کنه.
+
+**2. TD به‌صورت طبیعی توی continuing taskها قابل استفاده‌ست.**
+
+Monte Carlo به episode نیاز داره، یا حداقل به یه truncation مصنوعی. TD فقط transition می‌خواد، پس توی taskهای ongoing خیلی راحت و تمیز کار می‌کنه.
+
+**3. TD معمولاً variance پایین‌تری داره.**
+
+یه full return می‌تونه خیلی نوسان داشته باشه، چون شامل همه randomness آینده‌ست. TD targetها فقط از یه ریوارد به‌علاوه‌ی یه estimated next value استفاده می‌کنن، برای همین معمولاً noise کمتری دارن.
+
+**4. TD می‌تونه از incomplete experience هم یاد بگیره.**
+
+اگر یه episode وسط کار قطع بشه، TD باز هم از همه transitionهایی که تا اون لحظه دیده یاد گرفته. اما Monte Carlo ممکنه کل اون partial episode رو از دست بده، مگر اینکه handling خاصی براش اضافه کنیم.
+
+### مزیت‌های Monte Carlo نسبت به TD
+
+**1. Monte Carlo targetها bootstrapped نیستن.**
+
+target یعنی $G_t$ بر اساس ریواردهای واقعی ساخته می‌شه، نه بر اساس current value estimate. پس MC دنبال predictionهای احتمالاً اشتباه خودش نمی‌دوه.
+
+**2. Monte Carlo از نظر مفهومی خیلی ساده‌ست.**
+
+episodeها رو اجرا کن. returnها رو average بگیر. کل ایده همینه.
+
+**3. Monte Carlo وقتی episodeها کوتاهن و sample گرفتن ازشون راحته، می‌تونه خیلی effective باشه.**
+
+برای gameها یا simulation taskهایی که پایان episode توشون مشخصه، MC معمولاً یه baseline قوی محسوب می‌شه.
+
+
+## TD در مقابل Dynamic Programming
+
+TD از یه جهت خیلی شبیه Dynamic Programming به نظر میاد.
+
+Bellman expectation backup در DP اینه:
+
+$$
+V(s) \leftarrow \sum_a \pi(a|s) \sum_{s'} P(s'|s,a) [R(s,a,s') + \gamma V(s')].
+$$
+
+این یه **expected backup** است. یعنی با استفاده از model، روی همه اکشن‌های ممکن و همه next stateهای ممکن average می‌گیره.
+
+TD از یه sampled transition استفاده می‌کنه:
+
+$$
+V(S_t) \leftarrow V(S_t) + \alpha [R_{t+1} + \gamma V(S_{t+1}) - V(S_t)].
+$$
+
+این یه **sample backup** است. به‌جای اینکه روی همه next stateهای ممکن sum بگیریم، TD صبر می‌کنه تا environment یه next state واقعی تولید کنه و بعد از همون sample برای update استفاده می‌کنه.
+
+پس TD شبیه sample-based Dynamic Programming است.
+
+| Method | Backup type | منبع next stateها |
+|---|---|---|
+| DP | expected backup | model probabilities |
+| TD | sample backup | real experience |
+
+برای همینه که TD توی RL این‌قدر central است. TD ایده‌ی Bellman bootstrapping رو از DP نگه می‌داره، اما این requirement رو که model رو بشناسیم حذف می‌کنه.
