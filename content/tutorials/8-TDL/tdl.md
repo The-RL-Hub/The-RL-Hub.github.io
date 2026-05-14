@@ -84,8 +84,6 @@ TD می‌پرسه: می‌تونیم قبل از اینکه full return رو ب
 
 ## The Key Observation: Returns Are Recursive
 
-![Recursive structure of the return and the TD target](Pictures/2.png)
-
 به return نگاه کن:
 
 $$
@@ -135,6 +133,10 @@ $$
 $$
 
 این ساده‌ترین و مهم‌ترین formula این فصله.
+
+
+![Recursive structure of the return and the TD target](Pictures/2.png)
+
 
 ---
 
@@ -407,7 +409,7 @@ $$
 
 Monte Carlo از یه sampled return واقعی استفاده می‌کنه. TD از یه bootstrapped estimate از return استفاده می‌کنه.
 
-### مزیت‌های TD نسبت به Monte Carlo
+#### مزیت‌های TD نسبت به Monte Carlo
 
 **1. TD می‌تونه قبل از تموم شدن episode یاد بگیره.**
 
@@ -425,7 +427,7 @@ Monte Carlo به episode نیاز داره، یا حداقل به یه truncatio
 
 اگر یه episode وسط کار قطع بشه، TD باز هم از همه transitionهایی که تا اون لحظه دیده یاد گرفته. اما Monte Carlo ممکنه کل اون partial episode رو از دست بده، مگر اینکه handling خاصی براش اضافه کنیم.
 
-### مزیت‌های Monte Carlo نسبت به TD
+#### مزیت‌های Monte Carlo نسبت به TD
 
 **1. Monte Carlo targetها bootstrapped نیستن.**
 
@@ -564,7 +566,7 @@ $$
 
 چرا $0.5$؟ چون قبل از دیدن data، ممکنه حدس بزنیم هر state یه شانس پنجاه-پنجاه داره که آخرش به سمت راست ختم بشه.
 
-### Monte Carlo چی کار می‌کنه
+#### Monte Carlo چی کار می‌کنه
 
 Monte Carlo صبر می‌کنه تا یه episode تموم بشه. اگه episode به terminal راست برسه، return برای همه stateهای بازدیدشده 1 می‌شه. اگه به terminal چپ برسه، return برابر 0 می‌شه.
 
@@ -572,7 +574,7 @@ Monte Carlo صبر می‌کنه تا یه episode تموم بشه. اگه episo
 
 این می‌تونه noisy باشه. مثلاً state $A$ نزدیک terminal چپه، پس value واقعی‌اش پایینه. ولی هنوز ممکنه یه episode که از $A$ رد شده، آخرش همه راه رو به سمت راست بره و ریوارد 1 بگیره. اون‌وقت Monte Carlo مقدار $V(A)$ رو بر اساس اون outcome کامل به سمت بالا هل می‌ده.
 
-### TD چی کار می‌کنه
+#### TD چی کار می‌کنه
 
 TD هر بار یه step update می‌کنه. اگه ایجنت با ریوارد 0 از $A$ به $B$ حرکت کنه، TD این update رو انجام می‌ده:
 
@@ -628,7 +630,7 @@ $$
 
 ---
 
-## Handling Terminal States
+## هندل کردن terminal stateها
 
 terminal stateها نیاز به توجه ویژه دارن، چون تو implementationها زیاد باعث bug می‌شن.
 
