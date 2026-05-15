@@ -665,4 +665,454 @@ else:
 V[state] += alpha * (target - V[state])
 ```
 
-حواست باشه اشتباهی از یه stored value برای terminal state استفاده نکنی، مگر اینکه خودت explicit اون رو روی zero گذاشته باشی.
+    حواست باشه اشتباهی از یه stored value برای terminal state استفاده نکنی، مگر اینکه خودت explicit اون رو روی zero گذاشته باشی.
+
+
+
+
+
+
+
+
+
+
+
+## انتخاب Learning Rate
+
+Learning rate یعنی $\alpha$ مشخص می‌کنه value چقدر به سمت TD target حرکت کنه.
+
+$$
+V(S_t) \leftarrow V(S_t) + \alpha [\text{target} - V(S_t)].
+$$
+
+اینجا دو انتخاب رایج داریم.
+
+#### 1. Step size کاهشی
+
+برای convergence در tabular prediction، معمولاً از یه step size استفاده می‌کنیم که با گذشت زمان کمتر می‌شه، مثلاً:
+
+$$
+\alpha_t(s)=\frac{1}{N_t(s)},
+$$
+
+که توی اون $N_t(s)$ تعداد دفعاتیه که state $s$ تا این لحظه update شده.
+
+این کار باعث می‌شه updateها اول کار بزرگ باشن و بعداً کوچیک‌تر بشن. رفتارش شبیه یه running averageه.
+
+به شکل کلی‌تر، convergence proofها معمولاً step sizeهایی رو لازم دارن که این شرط‌ها رو داشته باشن:
+
+$$
+\sum_{t=1}^\infty \alpha_t = \infty,
+$$
+
+و
+
+$$
+\sum_{t=1}^\infty \alpha_t^2 < \infty.
+$$
+
+شرط اول می‌گه learning نباید خیلی زود متوقف بشه. شرط دوم می‌گه noise باید بالاخره آروم بشه.
+
+#### 2. Step size ثابت
+
+در practical RL، معمولاً از یه $\alpha$ ثابت استفاده می‌کنیم، مثلاً:
+
+$$
+\alpha = 0.1.
+$$
+
+این روش همه‌ی experienceها رو به یه اندازه average نمی‌کنه. به‌جاش، به experienceهای جدیدتر وزن بیشتری می‌ده. این وقتی به درد می‌خوره که:
+
+- environment با گذشت زمان تغییر کنه،
+- policy با گذشت زمان تغییر کنه،
+- یا بخوایم ایجنت همچنان خودش رو adapt کنه.
+
+یه step size ثابت ممکنه توی environmentهای noisy دقیقاً به یه value ثابت converge نکنه، ولی می‌تونه تغییرات رو بهتر track کنه.
+
+#### یه توصیه‌ی عملی
+
+برای مثال‌های کوچیک tabular، valueهایی مثل این‌ها رو امتحان کنید:
+
+$$
+\alpha \in \{0.01, 0.05, 0.1, 0.2, 0.5\}.
+$$
+
+اگه learning خیلی کنده، $\alpha$ رو بیشتر کنید. اگه valueها خیلی شدید بالا و پایین می‌پرن، کمترش کنید.
+
+---
+
+## نقش Discount Factor یعنی $\gamma$
+
+Discount factor یعنی $\gamma$ مشخص می‌کنه ریواردهای آینده چقدر مهم باشن.
+
+$$
+\text{TD target}=R_{t+1}+\gamma V(S_{t+1}).
+$$
+
+اگه $\gamma=0$ باشه، ایجنت فقط به ریوارد فوری اهمیت می‌ده. TD این‌طوری می‌شه:
+
+$$
+V(S_t) \leftarrow V(S_t) + \alpha [R_{t+1}-V(S_t)].
+$$
+
+پس value یه state فقط expected immediate reward اون state می‌شه.
+
+اگه $\gamma$ به 1 نزدیک باشه، ریواردهای آینده خیلی مهم می‌شن. information روی horizonهای طولانی propagate می‌شه، ولی learning هم ممکنه کندتر و حساس‌تر بشه، چون valueها خیلی به outcomeهای دور وابسته می‌شن.
+
+برای episodic taskها، $\gamma=1$ می‌تونه درست باشه، به شرطی که episodeها مطمئن terminate بشن و returnها finite باشن.
+
+برای continuing taskها، معمولاً به $\gamma<1$ نیاز داریم تا returnها bounded بمونن.
+
+---
+
+## Batch TD و شهود مربوط به Fixed Point
+
+تا اینجا درباره‌ی online TD حرف زدیم: یعنی بعد از هر transition، همین‌طور که data میاد، update انجام می‌دیم.
+
+یه نسخه‌ی مفهومی مفید هم داریم که بهش **batch TD** می‌گن. تصور کنید یه dataset ثابت از episodeها جمع می‌کنیم، بعد TD updateها رو بارها روی همون dataset اجرا می‌کنیم تا جایی که valueها دیگه تغییر نکنن.
+
+Batch Monte Carlo و batch TD به جواب‌های متفاوتی converge می‌کنن.
+
+Batch Monte Carlo به valueهایی converge می‌کنه که error رو نسبت به returnهای مشاهده‌شده minimize می‌کنن. یعنی می‌پرسه:
+
+> چه valueهایی از همه بهتر با full returnهایی match می‌شن که واقعاً دیدیم؟
+
+Batch TD به valueهایی converge می‌کنه که Bellman equationهای implied by observed transitions رو satisfy می‌کنن. یعنی می‌پرسه:
+
+> چه valueهایی با one-step transitionهای موجود توی این dataset self-consistent هستن؟
+
+این یه تفاوت خیلی مهمه.
+
+Monte Carlo با هر complete return مثل یه target برخورد می‌کنه. اما TD با data مثل evidence درباره‌ی یه Markov process برخورد می‌کنه و سعی می‌کنه value function اون process رو solve کنه.
+
+در Markov environmentها، این می‌تونه TD رو data-efficientتر کنه، چون TD ساختار transitionها رو مستقیم‌تر استفاده می‌کنه.
+
+---
+
+## TD Prediction با State-Value Functionها
+
+حالا بیایید prediction problem رو تمیزتر بنویسیم.
+
+ما این‌ها رو داریم:
+
+- یه policy یعنی $\pi$،
+- یه value table یعنی $V(s)$،
+- یه learning rate یعنی $\alpha$،
+- یه discount factor یعنی $\gamma$.
+
+در زمان $t$:
+
+1. ایجنت توی state $S_t$ قرار داره.
+2. اکشن $A_t \sim \pi(\cdot|S_t)$ رو انتخاب می‌کنه.
+3. Environment ریوارد $R_{t+1}$ و state بعدی $S_{t+1}$ رو برمی‌گردونه.
+4. ایجنت با استفاده از رابطه‌ی زیر $V(S_t)$ رو update می‌کنه:
+
+$$
+V(S_t) \leftarrow V(S_t) + \alpha [R_{t+1} + \gamma V(S_{t+1}) - V(S_t)].
+$$
+
+این policy evaluation حساب می‌شه، چون اکشن‌ها از policy ثابت $\pi$ میان.
+
+اگه $\pi$ در طول learning تغییر کنه، اون‌وقت value function داره یه moving target رو دنبال می‌کنه. این دیگه controlه، نه prediction خالص. بعداً این رو بررسی می‌کنیم.
+
+---
+
+## یه نسخه‌ی کامل‌تر از Pseudocode
+
+اینجا یه نسخه‌ی آماده‌تر برای implementation از tabular TD(0) prediction داریم.
+
+```text
+Input:
+    policy π
+    learning rate α
+    discount factor γ
+
+Initialize:
+    V(s) arbitrarily for all non-terminal states
+    V(s) = 0 for terminal states
+
+For each episode:
+    Initialize state S
+
+    Loop until S is terminal:
+        Sample action A ~ π(.|S)
+        Take action A
+        Observe R and S'
+
+        if S' is terminal:
+            target = R
+        else:
+            target = R + γ V(S')
+
+        δ = target - V(S)
+        V(S) = V(S) + α δ
+
+        S = S'
+```
+
+برای continuing taskها، episode loop رو حذف کنید و فقط برای همیشه update کردن رو ادامه بدید:
+
+```text
+Initialize state S
+Loop forever:
+    Sample action A ~ π(.|S)
+    Take action A
+    Observe R and S'
+    V(S) ← V(S) + α [R + γV(S') - V(S)]
+    S ← S'
+```
+
+این یکی از دلیل‌هاییه که TD از Monte Carlo generalتره.
+
+
+
+
+
+
+
+
+
+## دقیقاً چی داره estimate می‌شه؟
+
+در TD prediction، داریم $V^\pi$ رو estimate می‌کنیم؛ یعنی value function مربوط به policy‌ای که واقعاً behavior رو generate می‌کنه.
+
+اگه policy ثابت باشه و هر state مهم به‌اندازهٔ کافی visit بشه، tabular TD(0) تحت شرایط استاندارد روی step size به $V^\pi$ converge می‌کنه.
+
+value function یعنی $V^\pi$ همون fixed point مربوط به Bellman expectation operator هست:
+
+$$
+(T^\pi V)(s)=\sum_a \pi(a|s)\sum_{s'}P(s'|s,a)[R(s,a,s')+\gamma V(s')].
+$$
+
+TD این expectation رو مستقیم compute نمی‌کنه. به‌جاش یه action و یه next state رو sample می‌کنه، بعد یه update نویزی در جهتی انجام می‌ده که اون sample پیشنهاد می‌کنه.
+
+پس TD یه stochastic approximation method برای حل کردن Bellman equation هست.
+
+این جمله مهمه:
+
+> TD prediction یعنی sample-based approximate Bellman equation solving.
+
+---
+
+## چرا TD Target یه True Target نیست
+
+در supervised learning، معمولاً target ثابت می‌مونه. اگه label درست «cat» باشه، فقط چون model تغییر کرده، اون label عوض نمی‌شه.
+
+اما در TD learning، target شامل $V(S_{t+1})$ هست؛ یعنی چیزی که توسط value function فعلی تولید می‌شه. وقتی $V$ تغییر می‌کنه، target هم تغییر می‌کنه.
+
+پس TD target یه **moving target** هست:
+
+$$
+R_{t+1}+\gamma V(S_{t+1}).
+$$
+
+این یکی از دلیل‌هاییه که TD learning وقتی با function approximatorهای قدرتمند ترکیب می‌شه، می‌تونه unstable بشه. در tabular prediction، معمولاً همه‌چیز well-behaved پیش می‌ره. اما با neural networkها، off-policy data، و bootstrapping، مسئلهٔ moving-target خیلی جدی‌تر می‌شه.
+
+این هشدار بعداً وقتی DQN رو می‌خونیم مهم می‌شه.
+
+فعلاً، در tabular TD prediction، bootstrapping یه feature حساب می‌شه، نه یه bug.
+
+---
+
+## TD Error به‌عنوان Learning Signal
+
+TD error فقط یه ابزار ریاضیِ راحت نیست. این central learning signal در خیلی از RL algorithmهاست.
+
+$$
+\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t).
+$$
+
+این به ما می‌گه reality نسبت به prediction قبلی چقدر بهتر یا بدتر بوده.
+
+در prediction:
+
+- TD error valueها رو update می‌کنه.
+
+در control:
+
+- TD error action valueها رو update می‌کنه.
+
+در actor-critic methodها:
+
+- TD error معمولاً مثل یه advantage estimate عمل می‌کنه و به policy می‌گه یه action بهتر یا بدتر از چیزی بوده که انتظار داشتیم.
+
+در deep RL:
+
+- TD error برای ساختن loss functionها استفاده می‌شه.
+
+پس اگه الان $\delta_t$ رو خوب بفهمیم، بعداً بارها و بارها به کارمون میاد.
+
+---
+
+## از State Valueها به Action Valueها
+
+تا اینجا ما $V(s)$ رو update کردیم؛ یعنی value یه state تحت policy $\pi$.
+
+اما برای control، state valueها همیشه به‌تنهایی کافی نیستن. اگه فقط $V(s)$ رو بدونیم، انتخاب یه action ممکنه به دانستن model نیاز داشته باشه، چون باید بپرسیم:
+
+> کدوم action به next stateهای بهتر می‌رسه؟
+
+این به transition information نیاز داره.
+
+برای اینکه بدون model بتونیم act کنیم، معمولاً بهتره **action-valueها** رو یاد بگیریم:
+
+$$
+Q^\pi(s,a)=\mathbb{E}_\pi[G_t \mid S_t=s, A_t=a].
+$$
+
+این به ما expected return رو بعد از گرفتن action $a$ در state $s$ می‌گه، به شرطی که بعدش policy $\pi$ رو follow کنیم.
+
+ایدهٔ TD مستقیم از $V$ به $Q$ منتقل می‌شه.
+
+مثلاً SARSA target اینه:
+
+$$
+R_{t+1}+\gamma Q(S_{t+1}, A_{t+1}).
+$$
+
+SARSA update اینه:
+
+$$
+Q(S_t,A_t) \leftarrow Q(S_t,A_t)+\alpha[R_{t+1}+\gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t)].
+$$
+
+این از tuple زیر استفاده می‌کنه:
+
+$$
+S_t, A_t, R_{t+1}, S_{t+1}, A_{t+1}.
+$$
+
+به همین دلیله که بهش SARSA می‌گن.
+
+یه TD control method معروف دیگه Q-learning هست که targetش اینه:
+
+$$
+R_{t+1}+\gamma \max_{a'}Q(S_{t+1},a').
+$$
+
+اما در این chapter، SARSA و Q-learning رو کامل بررسی نمی‌کنیم. این‌ها chapter جداگانهٔ خودشون رو لازم دارن، چون exploration، on-policy در برابر off-policy learning، و فرق بین یاد گرفتن value مربوط به current policy و یاد گرفتن optimal value function به‌صورت مستقیم رو وارد بحث می‌کنن.
+
+فعلاً نکتهٔ اصلی اینه:
+
+> TD learning فقط یه prediction method نیست. این engine پشت مهم‌ترین tabular control algorithmهاست.
+
+---
+
+## Online Learning و Delayed ریوارد ها
+
+یکی از مهم‌ترین دلیل‌هایی که TD این‌قدر مهم شده اینه که delayed ریوارد ها رو خیلی طبیعی هندل می‌کنه.
+
+فرض کن یه ایجنت برای تعداد زیادی step، ریوارد صفر می‌گیره و بعد بالاخره در پایان یه ریوارد $+1$ دریافت می‌کنه. این حالت در gameها، navigation، و خیلی از goal-reaching taskها رایجه.
+
+اولش فقط state درست قبل از ریوارد update می‌شه. بعد state قبل از اون، از طریق value مربوط به next state، update می‌شه. بعد state قبل‌ترش. با تکرار تجربه، reward signal کم‌کم به عقب propagate می‌شه.
+
+این propagation با TD(0) می‌تونه کند باشه، چون در هر backup فقط یه step حرکت می‌کنه. Eligibility traceها و n-step methodها این روند رو سریع‌تر می‌کنن، چون TD errorها رو هم‌زمان روی چند state قبلی به عقب push می‌کنن.
+
+اما حتی TD(0) هم همین حالا basic delayed-reward problem رو به یه روش online حل می‌کنه.
+
+ایجنت لازم نداره کسی هر state رو به‌عنوان خوب یا بد label کنه. ریوارد آخر کار کافیه. TD کم‌کم اون information رو در کل state space پخش می‌کنه.
+
+
+
+
+
+
+## TD در تسک‌های episodic
+
+در تسک‌های episodic، TD از بیرون تقریباً درست مثل MC به نظر می‌رسه: ایجنت episodeها رو اجرا می‌کنه و valueها رو update می‌کنه.
+
+تفاوت، داخل خود episode اتفاق می‌افته.
+
+Monte Carlo، trajectory رو ذخیره می‌کنه، منتظر termination می‌مونه، returnها رو به‌صورت backward حساب می‌کنه، و بعد update انجام می‌ده.
+
+اما TD همون لحظه update می‌کنه:
+
+```text
+مشاهده‌ی transition → محاسبه‌ی TD target → update کردن value
+```
+
+این یعنی TD می‌تونه از همون episode اول شروع کنه estimateهاش رو بهتر کنه.
+
+برای تسک‌های episodic، settingهای معمول این‌ها هستن:
+
+- value مربوط به terminal استیت: $0$
+- $\gamma=1$ اگر تضمین شده باشه که episodeها تموم می‌شن و returnها bounded هستن
+- $\gamma<1$ اگر بخوایم ریواردهای سریع‌تر رو ترجیح بدیم یا episodeهای طولانی رو stabilize کنیم
+
+مثال‌هایی از تسک‌ها:
+
+- Blackjack
+- Gridworld با یه goal استیت
+- یه game با win/loss در انتها
+- episodeهای robot navigation
+
+---
+
+## TD در تسک‌های Continuing
+
+در تسک‌های continuing، terminal استیت طبیعی وجود نداره.
+
+مثال‌ها:
+
+- یه thermostat که room temperature رو برای همیشه کنترل می‌کنه،
+- یه recommendation system که پیوسته با userها تعامل داره،
+- یه robot vacuum که هر روز cleaning انجام می‌ده،
+- یه server allocation system که traffic رو مدیریت می‌کنه.
+
+Monte Carlo اینجا awkward می‌شه، چون هیچ episode endingای وجود نداره که full return اونجا در دسترس باشه.
+
+TD اینجا خیلی طبیعی‌تر fit می‌شه. در هر time step، ایجنت این‌ها رو مشاهده می‌کنه:
+
+$$
+S_t, A_t, R_{t+1}, S_{t+1},
+$$
+
+و همون لحظه update می‌کنه.
+
+برای discounted continuing تسک‌ها، update همون قبلی می‌مونه:
+
+$$
+V(S_t) \leftarrow V(S_t)+\alpha[R_{t+1}+\gamma V(S_{t+1})-V(S_t)].
+$$
+
+discount factor یعنی $\gamma<1$ کمک می‌کنه infinite return محدود بمونه.
+
+average-reward formulationهایی هم برای continuing تسک‌ها وجود دارن، ولی اون‌ها خارج از این chapter هستن. discounted formulation برای بیشتر introductory RL settingها کافیه.
+
+---
+
+## اشتباه‌های رایج
+
+### اشتباه 1: update کردن next استیت به‌جای current استیت
+
+TD error از $S_{t+1}$ استفاده می‌کنه، ولی update روی $S_t$ انجام می‌شه:
+
+$$
+V(S_t) \leftarrow V(S_t)+\alpha[R_{t+1}+\gamma V(S_{t+1})-V(S_t)].
+$$
+
+next استیت، target رو فراهم می‌کنه. current استیت همون چیزیه که update می‌شه.
+
+### اشتباه 2: فراموش کردن هندل کردن terminal
+
+اگر $S_{t+1}$ یک terminal استیت باشه، ازش bootstrap نکنید. از این استفاده کنید:
+
+$$
+\text{target}=R_{t+1}.
+$$
+
+### اشتباه 3: فکر کردن به اینکه TD به model نیاز داره
+
+TD به $P(s'|s,a)$ یا $R(s,a,s')$ نیاز نداره. فقط به sampled transitionها نیاز داره.
+
+### اشتباه 4: فکر کردن به اینکه TD و MC value functionهای متفاوتی رو estimate می‌کنن
+
+برای fixed-policy prediction در یه tabular Markov environment، هم MC و هم TD هدفشون همون true value function یعنی $V^\pi$ هست. فرقشون اینه که چطوری estimateش می‌کنن.
+
+### اشتباه 5: خیلی بزرگ گرفتن $\alpha$
+
+یه learning rate خیلی بزرگ می‌تونه باعث بشه valueها مدام بالا و پایین بپرن. با مقدارهای moderate مثل $0.1$ یا کمتر شروع کنید.
+
+### اشتباه 6: نادیده گرفتن exploration وقتی می‌ریم سمت control
+
+Prediction یه policy رو evaluate می‌کنه. Control یه policy رو improve می‌کنه. وقتی شروع می‌کنید به improve کردن policyها، باید جدی به exploration فکر کنید. برای همین SARSA و Q-learning در chapter بعدی نیاز به treatment دقیق دارن.
