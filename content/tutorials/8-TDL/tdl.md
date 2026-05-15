@@ -154,6 +154,8 @@ $$
 
 یه تخمین مفید از return مربوط به $S_t$ می‌شه. اگه estimateها هنوز درست نباشن، updateهای تکراری کم‌کم اون‌ها رو به سمت self-consistency هل می‌دن. بعد از transitionهای زیاد، valueها آروم‌آروم با reward structure و transition dynamics محیط جور درمی‌آن.
 
+![One-step TD backup and bootstrapping intuition](Pictures/3.png)
+
 یه analogy خوب، یاد گرفتن قیمت itemهای به‌هم‌وصل‌شده‌ست. فرض کن exact value یه خونه رو نمی‌دونی، ولی می‌دونی این خونه فقط یه خیابون با یه خونه دیگه فاصله داره که price estimate اون رو از قبل قبول داری. می‌تونی از estimate دومی استفاده کنی تا estimate اولی رو بهتر کنی. کامل و بی‌نقص نیست، ولی اگه همین‌طور information محلی بیشتری جمع کنی، کل map قیمت‌ها می‌تونه accurate بشه.
 
 TD هم همین کار رو با stateها می‌کنه. information رو تو state space پخش می‌کنه، یه transition در هر لحظه.
