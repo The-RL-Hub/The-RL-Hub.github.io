@@ -1085,7 +1085,7 @@ average-reward formulationهایی هم برای continuing تسک‌ها وجو
 
 ## اشتباه‌های رایج
 
-### اشتباه 1: update کردن next استیت به‌جای current استیت
+#### اشتباه 1: update کردن next استیت به‌جای current استیت
 
 TD error از $S_{t+1}$ استفاده می‌کنه، ولی update روی $S_t$ انجام می‌شه:
 
@@ -1095,7 +1095,7 @@ $$
 
 next استیت، target رو فراهم می‌کنه. current استیت همون چیزیه که update می‌شه.
 
-### اشتباه 2: فراموش کردن هندل کردن terminal
+#### اشتباه 2: فراموش کردن هندل کردن terminal
 
 اگر $S_{t+1}$ یک terminal استیت باشه، ازش bootstrap نکنید. از این استفاده کنید:
 
@@ -1103,18 +1103,18 @@ $$
 \text{target}=R_{t+1}.
 $$
 
-### اشتباه 3: فکر کردن به اینکه TD به model نیاز داره
+#### اشتباه 3: فکر کردن به اینکه TD به model نیاز داره
 
 TD به $P(s'|s,a)$ یا $R(s,a,s')$ نیاز نداره. فقط به sampled transitionها نیاز داره.
 
-### اشتباه 4: فکر کردن به اینکه TD و MC value functionهای متفاوتی رو estimate می‌کنن
+#### اشتباه 4: فکر کردن به اینکه TD و MC value functionهای متفاوتی رو estimate می‌کنن
 
 برای fixed-policy prediction در یه tabular Markov environment، هم MC و هم TD هدفشون همون true value function یعنی $V^\pi$ هست. فرقشون اینه که چطوری estimateش می‌کنن.
 
-### اشتباه 5: خیلی بزرگ گرفتن $\alpha$
+#### اشتباه 5: خیلی بزرگ گرفتن $\alpha$
 
 یه learning rate خیلی بزرگ می‌تونه باعث بشه valueها مدام بالا و پایین بپرن. با مقدارهای moderate مثل $0.1$ یا کمتر شروع کنید.
 
-### اشتباه 6: نادیده گرفتن exploration وقتی می‌ریم سمت control
+#### اشتباه 6: نادیده گرفتن exploration وقتی می‌ریم سمت control
 
 Prediction یه policy رو evaluate می‌کنه. Control یه policy رو improve می‌کنه. وقتی شروع می‌کنید به improve کردن policyها، باید جدی به exploration فکر کنید. برای همین SARSA و Q-learning در chapter بعدی نیاز به treatment دقیق دارن.
